@@ -1,0 +1,3 @@
+.trades-grid {
+    grid-template-columns: repeat(auto-fill, minmax(102px, 1fr)) !important;
+}

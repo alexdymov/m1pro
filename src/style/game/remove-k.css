@@ -1,0 +1,6 @@
+.table-body-players-card-body-money:after,
+.table-body-board-fields-one-label > div:after,
+.TableFieldcard-data-rows > div ._value._type_money:after,
+.TableContract-content-bottom ._sum:after {
+    content: "" !important;
+}

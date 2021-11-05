@@ -1,0 +1,34 @@
+{
+    "manifest_version": 2,
+    "icons": {
+        "16": "icon16.png",
+        "32": "icon32.png",
+        "48": "icon64.png",
+        "128": "icon128.png"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://monopoly-one.com/m1tv/",
+                "https://monopoly-one.com/table/"
+            ],
+            "js": [
+                "script.game.js"
+            ],
+            "run_at": "document_idle"
+        },
+        {
+            "matches": [
+                "https://monopoly-one.com/*"
+            ],
+            "exclude_matches": [
+                "https://monopoly-one.com/m1tv/",
+                "https://monopoly-one.com/table/"
+            ],
+            "js": [
+                "script.main.js"
+            ],
+            "run_at": "document_idle"
+        }
+    ]
+}

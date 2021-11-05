@@ -1,0 +1,16 @@
+.gamebox {
+    order: 2;
+    overflow-y: auto;
+    padding-right: 25px;
+}
+.chatbox {
+    display: flex;
+    flex-flow: column nowrap;
+    order: 1;
+}
+
+.blocksbox {
+    display: flex;
+    flex-flow: column;
+    flex-wrap: nowrap;
+}

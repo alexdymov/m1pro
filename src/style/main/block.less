@@ -1,0 +1,19 @@
+span.block-hide {
+    float: right;
+    padding: 3px 6px 0 3px;
+
+    &:hover {
+        cursor: pointer;
+    }
+}
+.block {
+    &._opened > div:not(.title) {
+        display: block;
+    }
+    &._closed > div:not(.title) {
+        display: none;
+    }
+    .title > a {
+        right: 27px !important;
+    }
+}

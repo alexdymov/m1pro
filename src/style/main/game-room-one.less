@@ -1,0 +1,59 @@
+.statsable .VueGamesRoomsOne-body-members-one-rank {
+    display: none;
+}
+.statsable .VueGamesRoomsOne-body-members-one {
+    padding-top: var(--statsable-padding-top);
+    &._slot_vs {
+        background-position-x: center;
+        background-position-y: 20px;
+    }
+}
+.VueGamesRoomsOne-body-members-one-stats {
+    text-align: center;
+    font-size: 14px;
+    margin-top: 6px;
+
+    .simple {
+        display: grid;
+        position: absolute;
+        top: 0;
+    }
+
+    span {
+        padding: 0 3px;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+
+        &.gender {
+            font-size: 18px;
+        }
+        &.ion-female {
+            color: #e49beb;
+            &:before {
+                margin-left: 4px;
+            }
+        }
+        &.ion-male {
+            color: #05a6f1;
+        }
+        &.mfp {
+            color: #da4553;
+        }
+        &.friends {
+            color: greenyellow;
+        }
+        &:before {
+            margin-right: 3px;
+        }
+        &.friends,
+        &.stats,
+        &.rank,
+        &.mfp {
+            &:before {
+                font-size: 20px;
+            }
+        }
+    }
+}

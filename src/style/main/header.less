@@ -1,0 +1,118 @@
+.header-findgame,
+.header-menu {
+    display: none !important;
+}
+
+.header-right-one .badge {
+    position: absolute;
+    top: 32px;
+    left: 22px;
+    margin: 0 !important;
+}
+
+.badge._streams {
+    background-color: #967bdc;
+}
+
+.header {
+    min-width: unset !important;
+    width: var(--base-menu-width) !important;
+    height: 100% !important;
+    position: fixed !important;
+
+    .widther {
+        flex-flow: column nowrap !important;
+        height: 100% !important;
+        margin: unset;
+        align-items: center;
+    }
+}
+
+.header-menu {
+    height: unset !important;
+}
+
+.header-menu,
+.header-right {
+    flex-flow: column nowrap !important;
+}
+
+.header-logo {
+    margin-right: 0 !important;
+
+    div {
+        display: none !important;
+    }
+}
+
+.header-user-new {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin: 0 20px;
+    z-index: 1;
+    flex-flow: column nowrap;
+}
+.header-user-new > a:not(.HeaderUser-avatar),
+.header-user-new > div:not(.HeaderUser-avatar),
+.header-right > a:not(.HeaderUser-avatar) {
+    display: flex;
+    justify-self: center;
+    align-items: center;
+    position: relative;
+    height: 50px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 30px;
+}
+body[theme="dark"] .header .header-user-new > a:hover > div:before,
+body[theme="dark"] .header .header-user-new > div:hover:before,
+body[theme="dark"] .header .header-right > a:hover > div:before {
+    color: #ccd0d9;
+}
+.header-user-new > a:not(.HeaderUser-menu-user) > div:before,
+.header-user-new > div:before {
+    transition: color 0.1s;
+}
+.HeaderUser-avatar {
+    position: relative !important;
+    transition: unset !important;
+}
+.HeaderUser-menu {
+    right: -225px !important;
+}
+.HeaderUser {
+    margin-top: auto !important;
+    + .header-user-new {
+        margin-bottom: 20px;
+    }
+}
+.header-link {
+    border-bottom: unset !important;
+    transition: unset !important;
+    color: unset !important;
+}
+.header-right-one._search {
+    margin-right: 0 !important;
+}
+.header .header-right > div._im > div {
+    top: 32px !important;
+    left: 22px;
+    border-radius: 999px !important;
+    padding: 2px 8px !important;
+    background: #da4553;
+    color: #fff;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    min-width: 10px;
+    right: unset !important;
+    line-height: 1;
+}
+.header-right > div.header-right-one {
+    width: unset !important;
+}
+.VueHeaderSearch {
+    position: absolute;
+    top: 0px;
+    left: 345px;
+}

@@ -1,0 +1,43 @@
+.profile > .container {
+    padding: 25px;
+}
+.profile-body-posts-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 700px);
+    column-gap: 25px;
+    row-gap: 25px;
+}
+
+.profile-body-side {
+    position: absolute;
+    top: -40px;
+    right: 0px;
+    width: 385px;
+}
+
+.profile-body-level, .profile-body-ingame, .profile-body-mfp {
+    margin-bottom: 5px;
+}
+.profile-body {
+    grid-template-columns: unset !important;
+}
+.profile-body-posts-list .title {
+    grid-column: 1 / -1;
+    margin: 0 20px !important;
+}
+.profile-body-posts-list-one:not(.nomargin) {
+    margin: 0 !important;
+}
+.profile-top-stat-badge {
+    bottom: -70px !important;
+}
+.profile-body-inventory-list {
+    max-width: 102px;
+    .Item {
+        max-width: 102px;
+        min-width: 102px;
+    }
+}
+.profile-body-ingame-text-nick {
+    display: none !important;
+}

@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "esModuleInterop": true,
+    "noImplicitAny": true,
+    "moduleResolution": "Node",
+    "module": "ESNext",
+    "target": "es6",
+    "allowJs": true,
+    "experimentalDecorators": true,
+  }
+}

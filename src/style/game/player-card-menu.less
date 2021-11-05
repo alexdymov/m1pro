@@ -1,0 +1,29 @@
+.table-body-players-card-menu {
+    width: 33px !important;
+    left: -33px;
+    position: relative;
+    top: unset !important;
+    background-color: #161a1b;
+
+    > div {
+        width: 33px;
+        height: 32px;
+        padding: 6px !important;
+        color: white !important;
+        border: none !important;
+        &._profile {
+            display: none !important;
+        }
+        &:before {
+            -webkit-filter: invert(100%) !important;
+            filter: invert(100%) !important;
+        }
+        &:after {
+            content: "" !important;
+            margin: 0 !important;
+        }
+    }
+}
+.table-body-players-card[mnpl-leaved] .table-body-players-card-menu {
+    display: none;
+}

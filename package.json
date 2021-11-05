@@ -1,0 +1,73 @@
+{
+  "name": "m1pro",
+  "description": "Enhance UI/UX for https://monopoly-one.com",
+  "version": "0.1.2",
+  "author": {
+    "name": "Smoke",
+    "email": "alex.dymov@gmail.com"
+  },
+  "sideEffects": [
+    "*.css",
+    "*.less"
+  ],
+  "eslintIgnore": [
+    "dist/*.js",
+    "node_modules"
+  ],
+  "scripts": {
+    "lint": "eslint --ext .ts,.js src",
+    "preversion": "npm run lint",
+    "postversion": "git push --follow-tags",
+    "analize": "npm_config_report=true npm run build",
+    "build": "parallel-webpack --config config/webpack.config.cjs -- --prod",
+    "dev": "parallel-webpack --config config/webpack.config.cjs --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexdymov/m1pro"
+  },
+  "private": true,
+  "dependencies": {
+    "jquery": "^2.1.4",
+    "lodash": "^4.17.21",
+    "vue-class-component": "^7.2.6"
+  },
+  "devDependencies": {
+    "@babel/core": "7.15.5",
+    "@babel/preset-env": "7.15.6",
+    "@types/jquery": "^3.5.6",
+    "@types/lodash": "^4.14.176",
+    "@typescript-eslint/eslint-plugin": "4.31.2",
+    "@typescript-eslint/parser": "4.31.2",
+    "babel-loader": "8.2.2",
+    "browserslist": "4.17.0",
+    "copy-webpack-plugin": "^9.0.1",
+    "css-loader": "6.3.0",
+    "eslint": "7.32.0",
+    "eslint-config-standard": "16.0.3",
+    "eslint-plugin-import": "2.24.2",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-promise": "5.1.0",
+    "eslint-plugin-standard": "4.1.0",
+    "generate-json-webpack-plugin": "^2.0.0",
+    "less": "4.1.1",
+    "less-loader": "10.0.1",
+    "parallel-webpack": "^2.6.0",
+    "remove-files-webpack-plugin": "^1.4.5",
+    "style-loader": "3.2.1",
+    "svg-png-converter": "0.0.9",
+    "sync": "^0.2.5",
+    "ts-loader": "9.2.6",
+    "typescript": "4.4.3",
+    "userscript-metadata-webpack-plugin": "0.1.0",
+    "vue": "^2.6.0",
+    "webpack": "5.53.0",
+    "webpack-bundle-analyzer": "4.4.2",
+    "webpack-cli": "4.8.0",
+    "webpack-livereload-plugin": "3.0.2",
+    "webpack-merge": "5.8.0",
+    "webpack-node-externals": "^3.0.0",
+    "wrapper-webpack-plugin": "^2.1.0",
+    "zip-webpack-plugin": "^4.0.1"
+  }
+}

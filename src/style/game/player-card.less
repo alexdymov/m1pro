@@ -1,0 +1,129 @@
+/* .table-body-players-card-body-avatar div {
+    margin: unset !important;
+}
+.table-body-players-card-body-nick ._nick>div {
+    font-size: 11px;
+} */
+
+/* .table-body-players-card-body-nick ._nick   { order: 1 }
+.table-body-players-card-body-nick ._vip    { order: 2 }
+.table-body-players-card-body-nick ._muted  { order: 3 }
+.table-body-players-card-body-nick ._ignore { order: 4 }
+.table-body-players-card-body-nick ._sex    { order: 5 }
+.table-body-players-card-body-nick > div {
+    margin-right: 3px !important;
+    margin-left: unset !important;
+} */
+
+.table-body-players-card-body {
+    cursor: initial !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 15px 15px 20px 15px !important;
+}
+.table-body-players-card-body-circle {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+    > div {
+        position: absolute !important;
+    }
+}
+.table-body-players-card-body-avatar {
+    top: 0;
+    left: 0;
+    height: 35px;
+    margin-top: 0 !important;
+    > div {
+        width: 40px;
+        height: 40px;
+        padding: 2px;
+        > div {
+            border-width: 2px;
+        }
+    }
+}
+.table-body-players-card-body-timer {
+    top: 0 !important;
+    left: 0 !important;
+    width: 40px;
+    height: 40px;
+    div {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+}
+
+/* <div class="table-body-players-card-body-stats" >0000/0000 (50%)</div> */
+.table-body-players-card-body-stats {
+    font-size: 12px;
+    position: absolute;
+    top: 7px;
+    right: 12px;
+    text-align: right;
+    > div:before {
+        opacity: 0.5;
+    }
+}
+
+.table-body-players-card-body-money {
+    margin-top: 0 !important;
+    text-align: unset !important;
+    &:after {
+        padding: 0 !important;
+    }
+    &:before {
+        content: "\f353" !important;
+    }
+}
+
+.table-body-players-card-body-share-worth,
+.table-body-players-card-body-assets-worth {
+    &:before {
+        padding-right: 5px;
+    }
+}
+
+.table-body-players-card-body-credit {
+    display: flex;
+    justify-content: right;
+
+    &:before {
+        margin-right: 3px;
+        background: center/contain no-repeat;
+        width: 16px;
+        align-self: center;
+    }
+    div {
+        align-self: center;
+        margin-left: 2px;
+        opacity: 0.7;
+    }
+}
+
+.table-body-players-card-body-avatar > div,
+.table-body-players-card-body-timer,
+._nick {
+    cursor: pointer;
+}
+
+/*
+<div class="_sex ion-female"></div>
+<div class="_sex ion-male"></div>
+*/
+.table-body-players-card-body-nick {
+    ._sex {
+        font-family: Ionicons;
+        font-size: 14px;
+        height: unset !important;
+
+        &.ion-female {
+            color: #e49beb;
+        }
+        &.ion-male {
+            color: #05a6f1;
+        }
+    }
+}

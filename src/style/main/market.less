@@ -1,0 +1,39 @@
+.marketBanner {
+    padding: 90px 25px 40px !important;
+    + .container {
+        padding: 25px 0 25px 25px;
+    }
+}
+
+.market-list,
+.marketListing-listing-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(375px, 1fr));
+    border-top: 1px solid #3d3e46;
+    border-left: 1px solid #3d3e46;
+    margin: 20px !important;
+    > .list-one {
+        border-bottom: 1px solid #3d3e46;
+        border-right: 1px solid #3d3e46;
+    }
+}
+
+.marketThing-seller {
+    margin-left: 0 !important;
+    float: unset !important;
+}
+.marketThing-price {
+    margin-left: 68px !important;
+    width: unset !important;
+    float: right !important;
+}
+.marketThing-info {
+    width: unset !important;
+    &:after {
+        clear: both;
+    }
+}
+
+.marketThing input[type="button"] {
+    margin-left: 5px;
+}

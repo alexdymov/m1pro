@@ -1,0 +1,46 @@
+import { MarketLotThing, UserInfoLong, UserData, SocketData, SocketEvent } from './beans';
+
+declare global {
+    interface Window {
+        onReadyToUse: (fn: any) => void;
+        require: {
+            async: (src: string) => Promise<any>
+        }
+        _libs: {
+            dialog: {
+                show: (args: any) => Promise<any>
+            }
+        }
+        _inventory_store_filter: {
+            items: Array<MarketLotThing>
+        }
+        API: {
+            websocket: { on: <T extends SocketData<any>>(e: string, fn: (data: T) => any) => any }
+            user: UserInfoLong
+            isUserSignedIn: () => boolean
+        }
+        Table: {
+            users_data: {
+                [key: number]: UserData
+            }
+            getAssetsWorth: (e: any) => number
+            getGameTime: () => number
+        }
+        PageNavigation: {
+            openInNewTab: (url: string) => void
+        }
+        parsers: { numberToSpacedString: (val: number, delimiter: string) => string }
+    }
+
+    interface Document {
+        $on: (e: string, fn: any) => void;
+    }
+
+    interface JQuery {
+        mnpl(attr: string): string;
+
+        mnpl(attr: string, val: string): JQuery;
+    }
+}
+
+export default {};
