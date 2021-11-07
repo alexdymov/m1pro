@@ -48,24 +48,24 @@ jobs:
           - chrome
     steps:
       steps:
-      - uses: actions/checkout@v2
+        - uses: actions/checkout@v2
 
-      - uses: actions/download-artifact@v2
-        with:
-          name: dist
+        - uses: actions/download-artifact@v2
+          with:
+            name: dist
 
-      - name: submit
-        run: |
-          case ${{ matrix.command }} in
-            chrome)
-              npx chrome-webstore-upload-cli@next upload --auto-publish --source m1pro-chrome.zip --extension-id agapnbihododcdnknlbogoajfajllgjd
-              ;;
-            firefox)
-              npx web-ext-submit@5 --source-dir temp/firefox
-              ;;
-          esac
-        env:
-          CLIENT_ID: ${{ secrets.CLIENT_ID }}
-          REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
-          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
-          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+        - name: submit
+          run: |
+            case ${{ matrix.command }} in
+              chrome)
+                npx chrome-webstore-upload-cli@next upload --auto-publish --source m1pro-chrome.zip --extension-id agapnbihododcdnknlbogoajfajllgjd
+                ;;
+              firefox)
+                npx web-ext-submit@5 --source-dir temp/firefox
+                ;;
+            esac
+          env:
+            CLIENT_ID: ${{ secrets.CLIENT_ID }}
+            REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
+            WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+            WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
