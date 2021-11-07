@@ -6,14 +6,8 @@ on:
       - "*.*.*"
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        command:
-          - firefox
-          - chrome
     env:
       NODE_VERSION: "14"
     steps:
@@ -35,14 +29,39 @@ jobs:
 
       - run: npm run build
 
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: |
+            dist/temp/firefox
+            dist/m1pro.prod.user.js
+            dist/m1pro*.zip
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        command:
+          - firefox
+          - chrome
+    steps:
+      steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+
       - name: submit
         run: |
           case ${{ matrix.command }} in
             chrome)
-              cd dist && npx chrome-webstore-upload-cli@next upload --auto-publish --source m1pro-chrome.zip --extension-id agapnbihododcdnknlbogoajfajllgjd
+              npx chrome-webstore-upload-cli@next upload --auto-publish --source m1pro-chrome.zip --extension-id agapnbihododcdnknlbogoajfajllgjd
               ;;
             firefox)
-              cd dist && npx web-ext-submit@5
+              npx web-ext-submit@5 --source-dir temp/firefox
               ;;
           esac
         env:
