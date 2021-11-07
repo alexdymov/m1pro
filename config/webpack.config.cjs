@@ -77,13 +77,15 @@ function createConfig(options) {
     if (options.prod) {
       plugins.push(new ZipPlugin({
         path: '../..',
-        filename: `${name}-${options.target}-${version}.zip`
+        filename: `${name}-${options.target}.zip`
       }));
-      plugins.push(new RemovePlugin({
-        after: {
-          include: [path]
-        }
-      }));
+      if (options.target !== 'firefox') {
+        plugins.push(new RemovePlugin({
+          after: {
+            include: [path]
+          }
+        }));
+      }
     }
   }
 
