@@ -9,8 +9,11 @@
     }
 }
 .VueGamesFriends-list {
-    overflow-y: auto;
     margin: 0 !important;
     padding: 20px;
     flex-grow: 1;
+
+    @media (min-width: 1600px) {
+        overflow-y: auto;
+    }
 }
