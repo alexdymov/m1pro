@@ -1,0 +1,52 @@
+name: deploy
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        command:
+          - firefox
+          - chrome
+    env:
+      NODE_VERSION: "14"
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - uses: actions/cache@v2
+        id: cache
+        with:
+          path: ./node_modules
+          key: node-${{ env.NODE_VERSION }}-${{ hashFiles('package-lock.json') }}
+
+      - run: npm ci
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - run: npm run build
+
+      - name: submit
+        run: |
+          case ${{ matrix.command }} in
+            chrome)
+              cd dist && npx chrome-webstore-upload-cli@next upload --auto-publish --source m1pro-chrome.zip --extension-id agapnbihododcdnknlbogoajfajllgjd
+              ;;
+            firefox)
+              cd dist && npx web-ext-submit@5
+              ;;
+          esac
+        env:
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
+          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
