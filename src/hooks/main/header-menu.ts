@@ -1,12 +1,14 @@
 import Vue from 'vue';
 import MainState from '../../components/main-state';
 import { debug } from '../../util/debug';
+import info from '../../components/info';
 
+type Handler = () => void;
 class Item {
     constructor(
-        public href: string,
-        public icon: string,
         public tooltip: string,
+        public icon: string,
+        public hrefOrClick: string | Handler,
         public badger?: () => JQuery<HTMLElement>
     ) { }
 }
@@ -25,11 +27,11 @@ export class HeaderMenu {
         const signed = window.API.isUserSignedIn();
         const rightctr = this.jq.find('div.header-right');
         [
-            new Item('/market', 'ion-ios-cart', 'Маркет', () => jQuery('<span class="badge" />').hide()),
-            signed ? new Item('/friends', 'ion-ios-people', 'Друзья', () => this.findBadge('friends')) : [],
-            signed ? new Item('/inventory', 'ion-bag', 'Инвентарь') : [],
-            new Item('/m1tv', 'ion-monitor', 'M1TV', () => this.findBadge('m1tv')),
-            new Item('/games', 'ion-ios-game-controller-b', 'Поиск игр'),
+            new Item('Маркет', 'ion-ios-cart', '/market', () => jQuery('<span class="badge" />').hide()),
+            signed ? new Item('Друзья', 'ion-ios-people', '/friends', () => this.findBadge('friends')) : [],
+            signed ? new Item('Инвентарь', 'ion-bag', '/inventory') : [],
+            new Item('M1TV', 'ion-monitor', '/m1tv', () => this.findBadge('m1tv')),
+            new Item('Поиск игр', 'ion-ios-game-controller-b', '/games'),
         ].flat().forEach(it => rightctr.prepend(this.newItem('header-right-one', it)));
 
         if (!signed) {
@@ -40,12 +42,12 @@ export class HeaderMenu {
         } else {
             const userctr = jQuery('<div class="header-user-new"/>').appendTo('.header > .widther');
             [
-                new Item('/trades', 'ion-shuffle', 'Обмены', () => this.findBadge('inventory')),
-                new Item('/wallet', 'ion-social-usd', 'Кошелек'),
-                new Item('/settings', 'ion-gear-b', 'Настройки'),
-                // new Item('/', 'ion-log-out', 'Выйти'),
+                new Item('Обмены', 'ion-shuffle', '/trades', () => this.findBadge('inventory')),
+                new Item('Кошелек', 'ion-social-usd', '/wallet'),
+                new Item('Настройки', 'ion-gear-b', '/settings'),
+                new Item('Информация', 'ion-information-circled', () => window.require("/js/dialog.js").showComponent(info)),
+                // new Item('Выйти', 'ion-log-out', '/'),
             ].forEach(it => userctr.append(this.newItem('header-user-one', it)));
-            // jQuery('<a class="HeaderUser-menu-user"><div class="HeaderUser-avatar" /></a>').attr('href', old.find('a:first').attr('href')).find('div').css('background-image', old.find('.HeaderUser-avatar').css('background-image')).end()
         }
 
         jQuery('.header-right-one._search').attr('kd-tooltip', 'Поиск игроков');
@@ -60,7 +62,11 @@ export class HeaderMenu {
         if (it.badger) {
             inner.append(it.badger());
         }
-        return jQuery(`<a href="${it.href}" class="header-link" />`).append(inner);
+        const item = typeof it.hrefOrClick === 'string' ?
+            jQuery(`<a href="${it.hrefOrClick}" class="header-link" />`) :
+            jQuery('<div class="header-link"/>').on('click', <Handler>it.hrefOrClick);
+        item.append(inner);
+        return item;
     }
 
     private showLots() {

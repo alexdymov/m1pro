@@ -31,7 +31,7 @@ class VueHookerPlugin implements PluginObject<any> {
                     });
                 }
             },
-            beforeCreate: function() {
+            beforeCreate: function () {
                 vooker.debug && debug('before created!', this.$options.name, this);
                 vooker.beforeCreateHooks.forEach((handler, predicate) => {
                     if (predicate(this)) {
@@ -45,11 +45,11 @@ class VueHookerPlugin implements PluginObject<any> {
     ifMount(predicate: ELPredicate, handler: Handler) {
         this.mountHooks.set(predicate, handler);
     }
-    
+
     ifCreate(predicate: VuePredicate, handler: Handler) {
         this.createHooks.set(predicate, handler);
     }
-    
+
     ifBeforeCreate(predicate: VuePredicate, handler: Handler) {
         this.beforeCreateHooks.set(predicate, handler);
     }

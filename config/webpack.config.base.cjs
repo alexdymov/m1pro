@@ -1,5 +1,6 @@
 const path = require('path')
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
+// import RemarkHTML from "remark-html";
 
 const webpackConfig = {
   resolve: {
@@ -42,7 +43,34 @@ const webpackConfig = {
           'style-loader',
           'css-loader',
         ]
-      }
+      },
+      {
+        test: /\.(png|jpg|gif)$/i,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: true,
+            },
+          },
+        ],
+      },
+      /* {
+        test: /\.md$/,
+        use: [
+          {
+            loader: "html-loader",
+          },
+          {
+            loader: "remark-loader",
+            options: {
+              remarkOptions: {
+                plugins: [RemarkHTML],
+              },
+            },
+          },
+        ],
+      } */
     ]
   },
   plugins: process.env.npm_config_report ? [new BundleAnalyzerPlugin()] : [],
