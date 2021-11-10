@@ -7,12 +7,19 @@ import { debug } from '../util/debug';
 export default class MainState extends Vue {
     lots: MarketLotsData = null;
     private itemPrices: Map<number, JQueryPromise<number>> = new Map();
+    lastSeen = localStorage.getItem('last_pro_version_seen') || '0';
+    ver = VERSION;
 
     created() {
         this.loadLots();
         setInterval(() => {
             this.loadLots();
         }, 60 * 1000);
+    }
+
+    changeSeen() {
+        this.lastSeen = this.ver;
+        localStorage.setItem('last_pro_version_seen', this.ver);
     }
 
     loadLots() {
@@ -56,5 +63,9 @@ export default class MainState extends Vue {
             this.itemPrices.set(id, this.getSingleMarketListing(`${id}`).then(thing => thing.price));
         }
         return this.itemPrices.get(id);
+    }
+
+    isUnseen(version: string) {
+        return version.localeCompare(this.lastSeen, undefined, { numeric: true, sensitivity: 'base' }) > 0;
     }
 }

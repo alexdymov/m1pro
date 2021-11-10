@@ -23,11 +23,23 @@
             background-color: #8cc152;
         }
     }
-    .Info-page-orig {
+    .Info-btn-main {
         display: flex;
         align-items: center;
         justify-content: center;
     }
+    .Info-btn-pro {
+        position: relative;
+        .badge {
+            display: none;
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+        }
+    }
+}
+.Info-pro-history h1 {
+    margin: 20px 0;
 }
 .Info-content > div {
     width: 500px;
@@ -35,6 +47,16 @@
     overflow-y: auto;
     &:not(.selected) {
         display: none;
+    }
+}
+.Info-pro {
+    padding: 20px;
+    .newver:after {
+        content: "NEW!";
+        color: red;
+        font-size: 10px;
+        margin-left: 5px;
+        vertical-align: text-top;
     }
 }
 .Info-main {

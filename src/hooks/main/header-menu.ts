@@ -15,6 +15,7 @@ class Item {
 
 export class HeaderMenu {
     private jq: JQuery<Element>;
+    private verBadge: JQuery<HTMLElement>;
 
     constructor(public base: Vue | { $el: HTMLElement }, private state: MainState) {
         this.jq = jQuery(base.$el).parent();
@@ -34,10 +35,12 @@ export class HeaderMenu {
             new Item('Поиск игр', 'ion-ios-game-controller-b', '/games'),
         ].flat().forEach(it => rightctr.prepend(this.newItem('header-right-one', it)));
 
+        this.verBadge = jQuery('<div class="badge">1</div>').hide();
+        const infoItem = new Item('Информация', 'ion-information-circled', () => window.require("/js/dialog.js").showComponent(info(this.state)), () => this.verBadge);
         if (!signed) {
             setTimeout(() => {
                 jQuery('.header-auth div.button').removeClass('button').removeClass('button-grass').text('').addClass('ion-log-in').addClass('header-user-one')
-                    .parent().addClass('header-user-new').attr('kd-tooltip', 'Войти');
+                    .parent().addClass('header-user-new').attr('kd-tooltip', 'Войти').append(this.newItem('header-user-one', infoItem));
             }, 1);
         } else {
             const userctr = jQuery('<div class="header-user-new"/>').appendTo('.header > .widther');
@@ -45,13 +48,16 @@ export class HeaderMenu {
                 new Item('Обмены', 'ion-shuffle', '/trades', () => this.findBadge('inventory')),
                 new Item('Кошелек', 'ion-social-usd', '/wallet'),
                 new Item('Настройки', 'ion-gear-b', '/settings'),
-                new Item('Информация', 'ion-information-circled', () => window.require("/js/dialog.js").showComponent(info)),
+                infoItem,
                 // new Item('Выйти', 'ion-log-out', '/'),
             ].forEach(it => userctr.append(this.newItem('header-user-one', it)));
         }
 
         jQuery('.header-right-one._search').attr('kd-tooltip', 'Поиск игроков');
         jQuery('.header-right-one._im').attr('kd-tooltip', 'Чат');
+
+        this.checkVersion();
+        this.state.$watch('lastSeen', () => this.checkVersion());
 
         this.state.lots && this.showLots();
         this.state.$watch('lots', () => this.showLots());
@@ -80,5 +86,9 @@ export class HeaderMenu {
 
     private findBadge(link: string): JQuery<HTMLElement> {
         return jQuery(`.header-menu a[href="/${link}"] span`).clone();
+    }
+
+    private checkVersion() {
+        this.state.isUnseen(VERSION) ? this.verBadge.show() : this.verBadge.hide();
     }
 }

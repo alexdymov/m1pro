@@ -8,6 +8,7 @@ const WrapperPlugin = require('wrapper-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const ZipPlugin = require('zip-webpack-plugin');
 const RemovePlugin = require('remove-files-webpack-plugin');
+const { DefinePlugin } = require('webpack');
 
 const createVariants = require('parallel-webpack').createVariants;
 const { version, description, name } = require('../package.json');
@@ -16,7 +17,11 @@ const webpackConfig = require('./webpack.config.base.cjs');
 const dist = rpath.resolve(__dirname, '../dist');
 
 function createConfig(options) {
-  const plugins = [];
+  const plugins = [
+    new DefinePlugin({
+      VERSION: JSON.stringify(version)
+    })
+  ];
   const entry = './src/index.ts';
 
   let tcfg;

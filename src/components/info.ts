@@ -2,7 +2,9 @@ import Vue, { ComponentOptions } from 'vue';
 import { debug } from '../util/debug';
 import '../style/info.less';
 import logo from '../../assets/images/icon128.png';
-// import hist from '../../CHANGELOG.md';
+import hist from '../../CHANGELOG.md';
+import MainState from './main-state';
+import merge from 'lodash/merge';
 
 const opts: ComponentOptions<Vue> = {
     template: `
@@ -10,12 +12,15 @@ const opts: ComponentOptions<Vue> = {
         <dialog-close></dialog-close>
         <div class="Info-wrap">
             <div class="Info-pages">
-                <div class="Info-page-orig selected"></div>
-                <div class="Info-page-pro"></div>
+                <div class="Info-btn-main selected"></div>
+                <div class="Info-btn-pro"><div class="badge">1</div></div>
             </div>
             <div class="Info-content">
                 <div class="Info-main selected"></div>
-                <div class="Info-pro">$hist}</div>
+                <div class="Info-pro">
+                    <div class="Info-pro-head">Текущая версия: ${VERSION}</div>
+                    <div class="Info-pro-history">${hist}</div>
+                </div>
             </div>
         </div>
     </div>`,
@@ -26,16 +31,40 @@ const opts: ComponentOptions<Vue> = {
             main.append(jQuery(el).clone().removeClass('col-2 col-4'));
         });
         jq.find('div.Info-pages div').on('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             jq.find('div.selected').removeClass('selected');
             const cur = jQuery(e.delegateTarget);
             cur.addClass('selected');
-            jQuery(cur.is('div.Info-page-orig') ? 'div.Info-main' : 'div.Info-pro').addClass('selected');
+            jQuery(cur.is('div.Info-btn-main') ? 'div.Info-main' : 'div.Info-pro').addClass('selected');
+            cur.is('div.Info-btn-pro') && this.state.changeSeen();
         });
-        jq.find('div.Info-page-orig').append(jQuery('a.header-logo svg').clone().attr('width', 128).attr('height', 128));
-        jq.find('div.Info-page-pro').css('background-image', `url(${logo})`);
+        jq.find('div.Info-btn-main').append(jQuery('a.header-logo svg').clone().attr('width', 128).attr('height', 128));
+        jq.find('div.Info-btn-pro').css('background-image', `url(${logo})`);
+        this.state.$watch('lastSeen', () => {
+            jq.find('div.badge').hide();
+        });
+        if (this.state.isUnseen(VERSION)) {
+            jq.find('div.badge').show();
+            jq.find('div.Info-pro-history h3 > strong').each((i, el) => {
+                const jel = jQuery(el);
+                debug(jel.text())
+                if (this.state.isUnseen(jel.text())) {
+                    jel.addClass('newver');
+                }
+            })
+        }
     }
 };
 
-const info = Vue.component('info', opts);
-(<any>info).raw_component = opts;
-export default info;
+export default (state: MainState) => {
+    const info = Vue.component('info', merge(opts, {
+        mixins: [{
+            created() {
+                this.state = state;
+            }
+        }]
+    }));
+    (<any>info).raw_component = opts;
+    return info;
+};
