@@ -3,17 +3,16 @@
     display: none !important;
 }
 
-.header-right-one .badge {
+.header-right-one .badge, .header-user-new .badge {
     position: absolute;
     top: 32px;
-    left: 22px;
+    left: 16px;
     margin: 0 !important;
 }
 
 .badge._streams {
     background-color: #967bdc;
 }
-
 .header {
     min-width: unset !important;
     width: var(--base-menu-width) !important;
@@ -70,6 +69,19 @@ body[theme="dark"] .header .header-user-new > div:hover:before,
 body[theme="dark"] .header .header-right > a:hover > div:before {
     color: #ccd0d9;
 }
+
+.header[mnpl-style=transparent-white], .header[mnpl-style=transparent-light] {
+    background-color: var(--color-block-bg) !important;
+}
+body[theme="dark"] .header-logo > svg > path {
+    fill: #c8c8ca !important;
+}
+body:not([theme]) .header .header-logo > svg > path {
+    fill: #7e8692 !important;
+}
+body:not([theme]) .header .header-right > div:before {
+    color: unset !important;
+}
 .header-user-new > a:not(.HeaderUser-menu-user) > div:before,
 .header-user-new > div:before {
     transition: color 0.1s;
@@ -97,7 +109,7 @@ body[theme="dark"] .header .header-right > a:hover > div:before {
 }
 .header .header-right > div._im > div {
     top: 32px !important;
-    left: 22px;
+    left: 16px;
     border-radius: 999px !important;
     padding: 2px 8px !important;
     background: #da4553;
