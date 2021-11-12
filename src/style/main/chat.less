@@ -9,13 +9,30 @@
 .Gchat-history {
     flex-grow: 1;
 }
-.GchatHistory-one-meta span._ignore {
-    font-size: 15px;
-    color: #da4553;
+.GchatHistory-one-meta {
+    > * {
+        margin-left: 3px !important;
+    }
+    span._ignctrl {
+        font-size: 15px;
+        display: none;
+        &._ignore {
+            color: #da4553;
+        }
+        &._unignore {
+            color: #8cc152;
+        }
+    }
 }
 .Gchat-title-menu {
     right: 35px !important;
     > div {
         height: 27px !important;
     }
+}
+.ignored {
+    display: none;
+}
+.shown {
+    display: block !important;
 }
