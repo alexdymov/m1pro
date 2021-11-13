@@ -19,22 +19,31 @@
     }
 }
 
-.marketThing-seller {
-    margin-left: 0 !important;
-    float: unset !important;
-}
-.marketThing-price {
-    margin-left: 68px !important;
-    width: unset !important;
-    float: right !important;
-}
-.marketThing-info {
-    width: unset !important;
-    &:after {
-        clear: both;
-    }
-}
+.marketThing {
+    display: grid;
+    grid-template-columns: 75px auto;
 
-.marketThing input[type="button"] {
-    margin-left: 5px;
+    > div {
+        float: unset !important;
+    }
+
+    .marketThing-info {
+        grid-column: 2;
+        grid-row: 1;
+        width: unset !important;
+    }
+    .marketThing-seller {
+        grid-row: 2;
+        grid-column: 1;
+        margin-left: 0 !important;
+    }
+    .marketThing-price {
+        grid-row: 2;
+        grid-column: 2;
+        margin-left: 68px !important;
+        justify-self: end;
+    }
+    input[type="button"] {
+        margin-left: 5px;
+    }
 }
