@@ -1,0 +1,37 @@
+.table-body-stats {
+    margin-left: 10px;
+    margin-top: 22px;
+
+    .TableHelper-content {
+        background-color: #161a1b;
+        white-space: nowrap;
+        width: 175px;
+        height: 250px;
+        flex-grow: unset !important;
+        padding: 10px;
+
+        > div {
+            margin: 0 !important;
+        }
+
+        ._matchtitle {
+            margin-bottom: 10px !important;
+            flex-direction: row;
+            flex-wrap: wrap;
+            font-size: 13px;
+            &._icon {
+                width: 20px;
+                height: 20px;
+            }
+            > div._viewers {
+                margin-top: 10px;
+                flex: 0 1 100%;
+                text-align: center;
+            }
+        }
+
+        .TableHelper-content-stat {
+            flex-flow: column nowrap !important;
+        }
+    }
+}
