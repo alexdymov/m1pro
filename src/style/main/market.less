@@ -19,6 +19,16 @@
     }
 }
 
+body:not([theme]) {
+    .market-list,
+    .marketListing-listing-list {
+        border-color: var(--color-border-1);
+        > .list-one {
+            border-color: var(--color-border-1);
+        }
+    }
+}
+
 .marketThing {
     display: grid;
     grid-template-columns: 75px auto;
@@ -40,10 +50,14 @@
     .marketThing-price {
         grid-row: 2;
         grid-column: 2;
-        margin-left: 68px !important;
         justify-self: end;
+        width: unset !important;
     }
     input[type="button"] {
         margin-left: 5px;
     }
+}
+
+.list-one:first-child {
+    border-top: unset !important;
 }
