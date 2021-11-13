@@ -1,5 +1,6 @@
 .wallet-top {
     padding: 90px 25px 40px !important;
+    margin-left: -25px;
 }
 
 .wallet > .widther {
