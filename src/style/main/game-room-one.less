@@ -1,3 +1,38 @@
+.VueGamesRoomsOne-body-head-info {
+    .header-bans,
+    .header-invites {
+        align-self: center;
+        margin-right: 10px;
+        &:before {
+            font-size: 23px;
+            margin-right: 3px;
+        }
+    }
+    .header-invites {
+        flex-grow: 1;
+        justify-content: end;
+        color: #66b343 !important;
+        .invited {
+            width: 25px;
+            height: 25px;
+            border-radius: 100%;
+            background-image: url(//cdn2.kirick.me/libs/monopoly/default_avatar.png);
+            background: center/cover no-repeat;
+            > a {
+                display: block;
+                width: 100%;
+                height: 100%;
+                border: none !important;
+                border-radius: 100%;
+            }
+        }
+    }
+    .header-bans {
+        color: #cd3747 !important;
+        margin-left: auto !important;
+    }
+}
+
 .statsable {
     --user_red: #cd3747;
     --user_green: #66b343;

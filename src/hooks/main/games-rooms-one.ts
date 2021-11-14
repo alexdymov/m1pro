@@ -46,8 +46,57 @@ export class GamesRoomsOne {
                 if (this.jq.parents('div.VueGamesRooms > div.block').is(':last-child')) {
                     break;
                 }
+                this.initRoomInfo();
                 this.initStats();
                 break;
+        }
+    }
+
+    private initRoomInfo() {
+        let [invites, bans]: JQuery<HTMLElement>[] = [];
+        this.jq.find('div.VueGamesRoomsOne-body-head-info').append(
+            invites = jQuery('<div class="header-invites ion-person-add"/>').hide(),
+            bans = jQuery('<div class="header-bans ion-ios-close"/>').hide(),
+        );
+
+        this.base.$watch('room.bans', (v: Array<number>) => {
+            this.showBans(v, bans);
+        });
+        this.showBans(this.base.room.bans, bans);
+
+        this.base.$watch('room.invites', (v: Array<Array<number>>) => {
+            this.showInvites(v, invites);
+        });
+        this.showInvites(this.base.room.invites, invites);
+    }
+
+    private showInvites(v: number[][], invites: JQuery<HTMLElement>) {
+        const inv = new Set(v.flat());
+        const res = new Array<JQueryPromise<UserInfoLong>>();
+        inv.forEach(id => {
+            res.push(computeIfAbsent(this.userDefs, id, () => this.state.getUserInfo(id).then(users => users[0])));
+        });
+        Promise.all(res).then((val: Array<UserInfoLong>) => {
+            invites.children().remove();
+            val.forEach(user => {
+                const el = jQuery('<div class="invited"><a/></div>').attr('kd-tooltip', user.nick);
+                user.avatar && el.css('background-image', `url(${user.avatar})`);
+                el.find('a').attr('href', `/profile/${user.domain || user.user_id}`);
+                invites.append(el);
+            });
+            inv.size ? invites.show() : invites.hide();
+        });
+    }
+
+    private showBans(v: number[], bans: JQuery<HTMLElement>) {
+        v.length ? bans.show() : bans.hide();
+        if (v.length) {
+            bans.text(v.length);
+            const res = new Array<JQueryPromise<string>>();
+            v.forEach(id => {
+                res.push(computeIfAbsent(this.userDefs, id, () => this.state.getUserInfo(id).then(users => users[0])).then(user => user.nick));
+            });
+            Promise.all(res).then(val => bans.attr('kd-tooltip', 'Забаненые пользователи:<br>' + val.join('<br>')));
         }
     }
 
