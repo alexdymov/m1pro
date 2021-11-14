@@ -188,7 +188,7 @@ export default class GameState extends Vue {
         return this.formatMoney(res);
     }
 
-    private formatMoney(res: number): string {
+    formatMoney(res: number): string {
         return window.parsers.numberToSpacedString(Math.round(res), ",");
     }
 

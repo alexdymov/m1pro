@@ -63,6 +63,23 @@ export class PlayerCards {
             credit = jQuery('<div class="table-body-players-card-body-credit ion-card"><span/><div class="avail"/></div>').hide()
         );
 
+        const extra = jQuery('<div class="table-body-players-card-body-extra"/>').appendTo(body).hide();
+        const extraBtn = jQuery('<div class="table-body-players-card-body-show-extra ion-plus-circled"/>').appendTo(body).hide();
+        let score: JQuery<HTMLElement>;
+        extra.append(
+            score = jQuery('<div class="table-body-players-card-body-score ion-scissors"/>').text('0'),
+            jQuery('<div class="table-body-players-card-body-games ion-stats-bars"/>'),
+            jQuery('<div class="table-body-players-card-body-winrate ion-pie-graph"/>')
+        );
+        extraBtn.on('mouseover', () => {
+            extra.show();
+            stats.hide();
+        });
+        extraBtn.on('mouseout', () => {
+            extra.hide();
+            stats.show();
+        });
+
         const order = Number(card.mnpl('order'));
         const idx = this.state.players.findIndex(pl => pl.order === order);
         const pl = this.state.players[idx];
@@ -73,6 +90,7 @@ export class PlayerCards {
         if (spl.status === 0) {
             share.text(this.state.getShareableWorth(spl.user_id)).show();
             assets.text(this.state.getAssetsWorth(spl.user_id)).show();
+            extraBtn.show();
             if (spl.can_use_credit) {
                 // debug('credit init');
                 this.changeCreditStatus(spl, credit);
@@ -85,8 +103,11 @@ export class PlayerCards {
         });
         this.state.$watch(`storage.status.players.${idx}.status`, (status: number) => {
             if (status === -1) {
-                [credit, share, assets].forEach(jq => jq.hide());
+                [credit, share, assets, extraBtn].forEach(jq => jq.hide());
             }
+        });
+        this.state.$watch(`storage.status.players.${idx}.score`, (val: number) => {
+            score.text(this.state.formatMoney(val));
         });
     }
 
@@ -101,6 +122,8 @@ export class PlayerCards {
                 jQuery('<span class="gender" />').addClass(pl.gender === Gender.Male ? 'ion-male' : 'ion-female'),
             )
         )
+        card.find('div.table-body-players-card-body-games').text(`${pl.games}/${pl.wins}`);
+        card.find('div.table-body-players-card-body-winrate').text(`${pl.winrate}%`);
     }
 
     private changeCreditStatus(spl: GamePlayer, jq: JQuery<HTMLElement>) {

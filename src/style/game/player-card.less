@@ -39,7 +39,8 @@
     }
 }
 
-.table-body-players-card-body-stats {
+.table-body-players-card-body-stats,
+.table-body-players-card-body-extra {
     font-size: 12px;
     position: absolute;
     top: 7px;
@@ -49,7 +50,16 @@
         opacity: 0.5;
     }
 }
-
+.table-body-players-card-body-show-extra {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    opacity: 0.5;
+    font-size: 20px;
+    &:hover {
+        cursor: pointer;
+    }
+}
 .table-body-players-card-body-money {
     margin-top: 0 !important;
     text-align: unset !important;
@@ -62,7 +72,8 @@
 }
 
 .table-body-players-card-body-share-worth,
-.table-body-players-card-body-assets-worth {
+.table-body-players-card-body-assets-worth,
+.table-body-players-card-body-extra > div {
     &:before {
         padding-right: 5px;
     }
