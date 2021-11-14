@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { MarketListingData, MarketListingReq, MarketListingThing, MarketLotsData, MarketLotsReq, MResp, UserInfoLong, UsersGetReq, UsersData } from '../shared/beans';
+import { MarketListingData, MarketListingReq, MarketListingThing, MarketLotsData, MarketLotsReq, MResp, UserInfoLong, UsersGetReq, UsersData, FriendsGetReq, FriendsData } from '../shared/beans';
 import Vue from 'vue';
 import { debug } from '../util/debug';
 import { propDefinedWindow } from '../util/prop-def';
@@ -55,6 +55,18 @@ export default class MainState extends Vue {
             .then((res: UsersData) => {
                 const def = $.Deferred();
                 if (res.code || !res.data?.length) {
+                    return def.reject(res);
+                } else {
+                    return def.resolve(res.data);
+                }
+            });
+    }
+
+    getFriends(req: FriendsGetReq): JQuery.Promise<FriendsData> {
+        return $.post('/api/friends.get', req)
+            .then((res: MResp<FriendsData>) => {
+                const def = $.Deferred();
+                if (res.code) {
                     return def.reject(res);
                 } else {
                     return def.resolve(res.data);

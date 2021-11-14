@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import { FriendsData, FriendsGetReq, MResp, Presence, UserInfoShort } from '../../shared/beans';
+import MainState from '../../components/main-state';
 
 declare module 'vue/types/vue' {
     interface Vue {
@@ -8,7 +9,7 @@ declare module 'vue/types/vue' {
 }
 
 export class Friends {
-    constructor(public base: Vue) {
+    constructor(public base: Vue, private state: MainState) {
         require('../../style/main/friends.less');
         setInterval(() => {
             this.loadOnlineFriends().then(friends => {
@@ -21,14 +22,6 @@ export class Friends {
     }
 
     private loadOnlineFriends(): JQuery.Promise<FriendsData> {
-        return $.post('/api/friends.get', new FriendsGetReq(Presence.Yes))
-        .then((res: MResp<FriendsData>) => {
-            const def = $.Deferred();
-                if (res.code) {
-                    return def.reject(res);
-                } else {
-                    return def.resolve(res.data);
-                }
-        });
+        return this.state.getFriends(new FriendsGetReq(Presence.Yes));
     }
 }
