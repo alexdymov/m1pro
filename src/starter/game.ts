@@ -4,7 +4,6 @@ import Vue from 'vue';
 import { debug } from '../util/debug';
 import GameState from '../components/game-state';
 import { expgame } from '../hooks/experimental/expgame';
-import propDefined from '../util/prop-def';
 
 export const gameStarter = () => {
     debug('M1Pro game boot');

@@ -2,7 +2,7 @@ import Component from 'vue-class-component';
 import { MarketListingData, MarketListingReq, MarketListingThing, MarketLotsData, MarketLotsReq, MResp, UserInfoLong, UsersGetReq, UsersData } from '../shared/beans';
 import Vue from 'vue';
 import { debug } from '../util/debug';
-import propDefined from '../util/prop-def';
+import { propDefinedWindow } from '../util/prop-def';
 
 @Component({})
 export default class MainState extends Vue {
@@ -15,7 +15,7 @@ export default class MainState extends Vue {
         if (window.API && window.API.isUserSignedIn()) {
             this.loadLots();
         } else {
-            propDefined('API').then(v => this.loadLots());
+            propDefinedWindow('API').then(v => this.loadLots());
         }
         setInterval(() => {
             this.loadLots();

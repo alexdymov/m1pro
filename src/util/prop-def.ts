@@ -1,17 +1,21 @@
-const propDefined = <T>(name: string): Promise<T> => {
+import { debug } from './debug';
+export const propDefinedWindow = <T>(name: string): Promise<T> => {
+    return propDefined(window, name);
+}
+
+export const propDefined = <T>(obj: any, name: string, timeoutms = 3000): Promise<T> => {
     return new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-            reject(`no var ${name} spawned on window`);
-        }, 3000);
-        Object.defineProperty(window, name, {
+        const timeout = timeoutms && setTimeout(() => {
+            reject(`no var ${name} spawned`);
+        }, timeoutms);
+        Object.defineProperty(obj, name, {
             configurable: true,
             set(v) {
-                Object.defineProperty(window, name, { configurable: true, enumerable: true, writable: true, value: v });
-                clearTimeout(timeout);
+                debug(v);
+                Object.defineProperty(obj, name, { configurable: true, enumerable: true, writable: true, value: v });
+                timeoutms && clearTimeout(timeout);
                 resolve(v);
             }
         });
     });
 }
-
-export default propDefined;
