@@ -3,6 +3,8 @@ import GamesFilter from '../../components/games-filter';
 import { GameRoom, UserInfoLong, GameSlot, Gender, Friendship, BanInfo, Rank } from '../../shared/beans';
 import { debug } from '../../util/debug';
 import MainState from '../../components/main-state';
+import debounce from 'lodash/debounce';
+import { computeIfAbsent } from '../../util/compute-if-absent';
 
 declare module 'vue/types/vue' {
     interface Vue {
@@ -15,7 +17,7 @@ declare module 'vue/types/vue' {
 
 export class GamesRoomsOne {
     private jq: JQuery<Element>;
-    private defs = new Map<number, JQueryPromise<UserInfoLong>>();
+    private userDefs = new Map<number, JQueryPromise<UserInfoLong>>();
 
     constructor(public base: Vue, private filter: GamesFilter, private state: MainState) {
         this.jq = jQuery(base.$el);
@@ -44,9 +46,9 @@ export class GamesRoomsOne {
             jQuery('<div class="VueGamesRoomsOne-body-members-one-stats"/>')
                 .appendTo(el);
         });
-        this.base.$watch('players_all', (val: Set<number>) => {
+        this.base.$watch('players_all', debounce((val: Set<number>) => {
             this.loadUsers(val);
-        }, { deep: true });
+        }, 300), { deep: true });
         this.loadUsers(this.base.players_all);
     }
 
@@ -55,31 +57,29 @@ export class GamesRoomsOne {
         els.children().remove();
 
         val.forEach((id, i) => {
-            if (!this.defs.has(id)) {
-                this.defs.set(id, this.state.getUserInfo(id).then(users => users[0]));
-            }
-            this.defs.get(id).then(user => {
-                /* user.mfp_ban_history = new BanInfo();
-                user.mfp_ban_history.count = 10;
-                user.rank = new Rank();
-                user.rank.pts = 1000;
-                user.games = 1100;
-                user.games_wins = 1000; */
-                const idx = this.base.slots.findIndex(s => s.user_id === user.user_id);
-                const wr = user.games > 0 ? Math.round((user.games_wins / user.games) * 100) : 0;
-                els.eq(idx).append(
-                    jQuery('<div class="simple"/>').append(
-                        user.rank?.pts && jQuery('<span class="rank ion-connection-bars" />').text(user.rank?.pts),
-                        user.mfp_ban_history && jQuery('<span class="mfp ion-android-sad" />').text(user.mfp_ban_history.count),
-                        user.friendship === Friendship.Active && jQuery('<span class="friends ion-ios-people" />'),
-                        jQuery('<span class="gender" />').addClass(user.gender === Gender.Male ? 'ion-male' : 'ion-female'),
-                    ),
-                    jQuery('<div class="complex"/>').append(
-                        jQuery('<span class="stats ion-stats-bars" />').text(`${user.games}/${user.games_wins}`),
-                        jQuery('<span class="winrate ion-pie-graph" />').text(`${wr}%`),
-                    )
-                );
-            });
+            computeIfAbsent(this.userDefs, id, () => this.state.getUserInfo(id).then(users => users[0]))
+                .then(user => {
+                    /* user.mfp_ban_history = new BanInfo();
+                    user.mfp_ban_history.count = 10;
+                    user.rank = new Rank();
+                    user.rank.pts = 1000;
+                    user.games = 1100;
+                    user.games_wins = 1000; */
+                    const idx = this.base.slots.findIndex(s => s.user_id === user.user_id);
+                    const wr = user.games > 0 ? Math.round((user.games_wins / user.games) * 100) : 0;
+                    els.eq(idx).append(
+                        jQuery('<div class="simple"/>').append(
+                            user.rank?.pts && jQuery('<span class="rank ion-connection-bars" />').text(user.rank?.pts),
+                            user.mfp_ban_history && jQuery('<span class="mfp ion-android-sad" />').text(user.mfp_ban_history.count),
+                            user.friendship === Friendship.Active && jQuery('<span class="friends ion-ios-people" />'),
+                            jQuery('<span class="gender" />').addClass(user.gender === Gender.Male ? 'ion-male' : 'ion-female'),
+                        ),
+                        jQuery('<div class="complex"/>').append(
+                            jQuery('<span class="stats ion-stats-bars" />').text(`${user.games}/${user.games_wins}`),
+                            jQuery('<span class="winrate ion-pie-graph" />').text(`${wr}%`),
+                        )
+                    );
+                });
         });
     }
 
