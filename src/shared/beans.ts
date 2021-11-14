@@ -268,3 +268,8 @@ export class GameSlot {
     rank?: { image: string, pts?: number }
     user_id?: number
 }
+
+export interface AsyncStorage {
+    storage: { [key: number]: UserInfoLong };
+    load(ids: Array<number>): any;
+}

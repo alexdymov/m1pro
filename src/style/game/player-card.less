@@ -1,20 +1,3 @@
-/* .table-body-players-card-body-avatar div {
-    margin: unset !important;
-}
-.table-body-players-card-body-nick ._nick>div {
-    font-size: 11px;
-} */
-
-/* .table-body-players-card-body-nick ._nick   { order: 1 }
-.table-body-players-card-body-nick ._vip    { order: 2 }
-.table-body-players-card-body-nick ._muted  { order: 3 }
-.table-body-players-card-body-nick ._ignore { order: 4 }
-.table-body-players-card-body-nick ._sex    { order: 5 }
-.table-body-players-card-body-nick > div {
-    margin-right: 3px !important;
-    margin-left: unset !important;
-} */
-
 .table-body-players-card-body {
     cursor: initial !important;
     display: flex;
@@ -24,8 +7,8 @@
 }
 .table-body-players-card-body-circle {
     position: absolute;
-    top: 25px;
-    left: 25px;
+    top: 30px;
+    left: 33px;
     > div {
         position: absolute !important;
     }
@@ -56,7 +39,6 @@
     }
 }
 
-/* <div class="table-body-players-card-body-stats" >0000/0000 (50%)</div> */
 .table-body-players-card-body-stats {
     font-size: 12px;
     position: absolute;
@@ -109,10 +91,56 @@
     cursor: pointer;
 }
 
-/*
-<div class="_sex ion-female"></div>
-<div class="_sex ion-male"></div>
-*/
+.table-body-players-card-body-info {
+    position: absolute;
+    display: grid;
+    font-size: 12px;
+    top: 3px;
+    left: 3px;
+
+    span {
+        padding: 0 3px;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+
+        &.gender {
+            font-size: 16px;
+        }
+        &.ion-female {
+            color: #e49beb;
+            &:before {
+                margin-left: 4px;
+            }
+        }
+        &.ion-male {
+            color: #05a6f1;
+        }
+        &.mfp {
+            color: #da4553;
+        }
+        &.friends {
+            color: greenyellow;
+        }
+        &:before {
+            margin-right: 3px;
+        }
+        &.friends,
+        &.stats,
+        &.rank,
+        &.mfp {
+            &:before {
+                font-size: 18px;
+            }
+        }
+    }
+}
+
+.table-body-players-card[mnpl-action_player="1"][mnpl-order="0"] .mfp {
+    color: black;
+}
+
 .table-body-players-card-body-nick {
     ._sex {
         font-family: Ionicons;
@@ -124,6 +152,26 @@
         }
         &.ion-male {
             color: #05a6f1;
+        }
+    }
+}
+.table-body-players-vs {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 5px;
+
+    .table-body-team {
+        flex: 50%;
+        text-align: center;
+        span {
+            font-size: 22px;
+            white-space: nowrap;
+            &:before {
+                padding-right: 5px;
+            }
+        }
+        &[mnpl-team="1"] {
+            align-self: end;
         }
     }
 }

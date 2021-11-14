@@ -1,10 +1,8 @@
 import GameState from "../../components/game-state";
 import { debug } from '../../util/debug';
-import { GamePlayer } from '../../shared/beans';
+import { GamePlayer, Friendship, Gender } from '../../shared/beans';
 
 export class PlayerCards {
-    private showShare = false;
-
     constructor(private state: GameState) {
         require('../../style/game/player-card.less');
         state.$watch('loaded', () => {
@@ -13,9 +11,8 @@ export class PlayerCards {
     }
 
     private init() {
-        this.showShare = this.state.party;
-        
-        jQuery('div.table-body-players-card').mnpl('opened', '1').each((i, el) => this.initCard(jQuery(el)));
+        const cards = jQuery('div.table-body-players-card').mnpl('opened', '1');
+        cards.each((i, el) => this.initCard(jQuery(el)));
 
         this.state.$watch('storage.status.round', () => {
             this.state.storage.status.players.forEach((spl, i) => {
@@ -24,15 +21,28 @@ export class PlayerCards {
                     this.changeCreditStatus(spl, jQuery(`#player_card_${spl.user_id} div.table-body-players-card-body-credit`));
                 }
             });
-        })
+        });
         this.state.$watch('storage.status', () => {
             this.state.players.forEach((pl, i) => {
                 jQuery(`#player_card_${pl.user_id} div.table-body-players-card-body-assets-worth`).text(this.state.getAssetsWorth(pl.user_id));
-                if (this.showShare) {
-                    jQuery(`#player_card_${pl.user_id} div.table-body-players-card-body-share-worth`).text(this.state.getShareableWorth(pl.user_id));
-                }
+                jQuery(`#player_card_${pl.user_id} div.table-body-players-card-body-share-worth`).text(this.state.getShareableWorth(pl.user_id));
             })
-        })
+        });
+        this.state.$watch('usersLoaded', () => {
+            cards.each((i, el) => this.updateCard(jQuery(el)));
+        });
+        if (this.state.party) {
+            const vs = jQuery('div.table-body-players-vs').append('<div class="table-body-team" mnpl-team="0"><span class="ion-ios-cart"/></div><div class="table-body-team" mnpl-team="1"><span class="ion-ios-cart"/></div>');
+            this.state.$watch('storage.status', () => {
+                this.updateTeams(vs);
+            });
+            this.updateTeams(vs);
+        }
+    }
+
+    private updateTeams(vs: JQuery<HTMLElement>) {
+        vs.find('div[mnpl-team="0"] span').text(this.state.getTeamWorth(0));
+        vs.find('div[mnpl-team="1"] span').text(this.state.getTeamWorth(1));
     }
 
     private initCard(card: JQuery<HTMLElement>) {
@@ -61,7 +71,7 @@ export class PlayerCards {
 
         const spl = this.state.storage.status.players[idx];
         if (spl.status === 0) {
-            this.showShare && share.text(this.state.getShareableWorth(spl.user_id)).show();
+            share.text(this.state.getShareableWorth(spl.user_id)).show();
             assets.text(this.state.getAssetsWorth(spl.user_id)).show();
             if (spl.can_use_credit) {
                 // debug('credit init');
@@ -78,6 +88,19 @@ export class PlayerCards {
                 [credit, share, assets].forEach(jq => jq.hide());
             }
         });
+    }
+
+    private updateCard(card: JQuery<HTMLElement>) {
+        const order = Number(card.mnpl('order'));
+        const pl = this.state.players.find(pl => pl.order === order);
+        card.find('div.table-body-players-card-body').append(
+            jQuery('<div class="table-body-players-card-body-info"/>').append(
+                jQuery('<span class="rank ion-connection-bars" />').text(pl.rank?.pts || '???'),
+                pl.mfp_ban_history && jQuery('<span class="mfp ion-android-sad" />').text(pl.mfp_ban_history.count),
+                pl.friendship === Friendship.Active && jQuery('<span class="friends ion-ios-people" />'),
+                jQuery('<span class="gender" />').addClass(pl.gender === Gender.Male ? 'ion-male' : 'ion-female'),
+            )
+        )
     }
 
     private changeCreditStatus(spl: GamePlayer, jq: JQuery<HTMLElement>) {

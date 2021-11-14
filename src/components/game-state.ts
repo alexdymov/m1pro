@@ -1,20 +1,25 @@
 import Component from "vue-class-component";
 import Vue from 'vue';
-import { GameField, GamePlayer, Gender, Rank, UserData, UserInfoLong } from '../shared/beans';
+import { AsyncStorage, GameField, GamePlayer, Gender, Rank, UserInfoLong, BanInfo, Friendship } from '../shared/beans';
 import merge from "lodash/merge";
-import { get } from "lodash";
 import { debug } from '../util/debug';
 
 export class Player {
+    nick: string;
+    gender: Gender;
+    rank: Rank;
+    token: HTMLElement;
+    games: number;
+    wins: number;
+    winrate: number;
+    mfp_ban_history: BanInfo;
+    friendship: Friendship;
+
     constructor(
         public user_id: number,
         public orderOrig: number,
         public order: number,
-        public team: number,
-        public nick?: string,
-        public gender?: Gender,
-        public rank?: Rank,
-        public token?: HTMLElement
+        public team: number
     ) { }
 }
 
@@ -73,9 +78,32 @@ export default class GameState extends Vue {
     updates = 0;
     updateActionPlayer = 0;
     lockedFields = new Set<number>();
+    users: { [key: number]: UserInfoLong } = null;
+    stor: AsyncStorage = null;
+    usersLoaded = false;
 
     init(v: Vue) {
         this.storage = v;
+        this.stor = window.API.createAsyncStorage({ is_short: false });
+        this.users = this.stor.storage;
+
+        this.$watch('users', v => {
+            this.players.forEach(pl => {
+                const user = this.users[pl.user_id];
+                pl.nick = user.nick;
+                pl.gender = user.gender;
+                pl.rank = user.rank;
+                pl.friendship = user.friendship;
+                pl.games = user.games;
+                pl.wins = user.games_wins;
+                // user.mfp_ban_history = new BanInfo();
+                // user.mfp_ban_history.count = 10;
+                pl.mfp_ban_history = user.mfp_ban_history;
+                pl.winrate = user.games > 0 ? Math.round((user.games_wins / user.games) * 100) : 0;
+            });
+            this.usersLoaded = true;
+        });
+
         const ref = this;
         const old = v.$options.methods.update;
         merge(v.$options, {
@@ -106,9 +134,14 @@ export default class GameState extends Vue {
         this.loaded = true;
         this.user = window.API.user;
         this.party = this.storage.flags.game_2x2;
+        this.loadPlayers();
+        this.stor.load(this.players.map(pl => pl.user_id));
+    }
+
+    private loadPlayers() {
         const players = this.storage.status.players;
         const myidx = players.findIndex(pl => this.isMe(pl));
-        const mydata = myidx >=0 ? players[myidx] : null;
+        const mydata = myidx >= 0 ? players[myidx] : null;
         this.needFixColor = myidx > 0;
 
         let first = true;
@@ -131,8 +164,7 @@ export default class GameState extends Vue {
                 }
             }
 
-            // const { nick, gender, rank } = window.Table.users_data[pl.user_id];
-            this.players.push(new Player(pl.user_id, orderOrig, order, pl.team/* , nick, gender, rank */));
+            this.players.push(new Player(pl.user_id, orderOrig, order, pl.team));
         });
         debug('got players', this.players);
     }
@@ -142,6 +174,25 @@ export default class GameState extends Vue {
     }
 
     getShareableWorth(id: number): string {
+        return this.formatMoney(this.getPlayerFieldsWorth(id));
+    }
+
+    getTeamWorth(team: number): string {
+        const pls = this.storage.status.players
+            .filter(pl => pl.team === team);
+        let res = pls
+            .map(pl => pl.money)
+            .reduce((a, b) => a + b, 0);
+        res += pls.map(pl => this.getPlayerFieldsWorth(pl.user_id))
+            .reduce((a, b) => a + b, 0);
+        return this.formatMoney(res);
+    }
+
+    private formatMoney(res: number): string {
+        return window.parsers.numberToSpacedString(Math.round(res), ",");
+    }
+
+    private getPlayerFieldsWorth(id: number): number {
         let res = 0;
         const excludeGroups = new Array<number>();
         this.storage.vms.fields.fields_with_equipment.forEach(v => {
@@ -161,13 +212,13 @@ export default class GameState extends Vue {
                 if (this.storage.config.coeff_reject_mortgaged) {
                     res += Math.round(v.buy * this.storage.config.coeff_mortgage * this.storage.config.coeff_reject_mortgaged);
                 } else if (this.storage.config.auction_mortgaged) {
-                    res += Math.round(v.buy * (1 - this.storage.config.coeff_mortgage))
+                    res += Math.round(v.buy * (1 - this.storage.config.coeff_mortgage));
                 }
             } else if (this.storage.config.coeff_field_drop) {
                 res += Math.round(v.buy * this.storage.config.coeff_field_drop);
             }
         });
-        return window.parsers.numberToSpacedString(Math.round(res), ",");
+        return res;
     }
 
     private isMe(pl: GamePlayer): boolean {

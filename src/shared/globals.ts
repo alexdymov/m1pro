@@ -1,4 +1,4 @@
-import { MarketLotThing, UserInfoLong, UserData, SocketData, SocketEvent } from './beans';
+import { MarketLotThing, UserInfoLong, UserData, SocketData, SocketEvent, BanInfo, AsyncStorage } from './beans';
 
 declare global {
     interface Window {
@@ -18,6 +18,7 @@ declare global {
             websocket: { on: <T extends SocketData<any>>(e: string, fn: (data: T) => any) => any }
             user: UserInfoLong
             isUserSignedIn: () => boolean
+            createAsyncStorage: (prm: { is_short: boolean }) => AsyncStorage
         }
         Table: {
             users_data: {
