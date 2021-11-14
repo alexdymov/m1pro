@@ -71,11 +71,11 @@ export class PlayerCards {
             jQuery('<div class="table-body-players-card-body-games ion-stats-bars"/>'),
             jQuery('<div class="table-body-players-card-body-winrate ion-pie-graph"/>')
         );
-        extraBtn.on('mouseover', () => {
+        extraBtn.on('mouseenter', () => {
             extra.show();
             stats.hide();
         });
-        extraBtn.on('mouseout', () => {
+        extraBtn.on('mouseleave', () => {
             extra.hide();
             stats.show();
         });
@@ -116,7 +116,7 @@ export class PlayerCards {
         const pl = this.state.players.find(pl => pl.order === order);
         card.find('div.table-body-players-card-body').append(
             jQuery('<div class="table-body-players-card-body-info"/>').append(
-                jQuery('<span class="rank ion-connection-bars" />').text(pl.rank?.pts || '???'),
+                pl.rank?.pts && jQuery('<span class="rank ion-connection-bars" />').text(pl.rank?.pts),
                 pl.mfp_ban_history && jQuery('<span class="mfp ion-android-sad" />').text(pl.mfp_ban_history.count),
                 pl.friendship === Friendship.Active && jQuery('<span class="friends ion-ios-people" />'),
                 jQuery('<span class="gender" />').addClass(pl.gender === Gender.Male ? 'ion-male' : 'ion-female'),

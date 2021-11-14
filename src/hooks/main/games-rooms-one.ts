@@ -69,7 +69,7 @@ export class GamesRoomsOne {
                 const wr = user.games > 0 ? Math.round((user.games_wins / user.games) * 100) : 0;
                 els.eq(idx).append(
                     jQuery('<div class="simple"/>').append(
-                        jQuery('<span class="rank ion-connection-bars" />').text(user.rank?.pts || '???'),
+                        user.rank?.pts && jQuery('<span class="rank ion-connection-bars" />').text(user.rank?.pts),
                         user.mfp_ban_history && jQuery('<span class="mfp ion-android-sad" />').text(user.mfp_ban_history.count),
                         user.friendship === Friendship.Active && jQuery('<span class="friends ion-ios-people" />'),
                         jQuery('<span class="gender" />').addClass(user.gender === Gender.Male ? 'ion-male' : 'ion-female'),
