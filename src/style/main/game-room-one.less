@@ -1,11 +1,101 @@
-.statsable .VueGamesRoomsOne-body-members-one-rank {
-    display: none;
-}
-.statsable .VueGamesRoomsOne-body-members-one {
-    padding-top: var(--statsable-padding-top);
-    &._slot_vs {
-        background-position-x: center;
-        background-position-y: 20px;
+.statsable {
+    --user_red: #cd3747;
+    --user_green: #66b343;
+    --user_blue: #54c9f0;
+    --user_purple: #a17fef;
+    --user_yellow: #d98942;
+    --slot_red: linear-gradient(45deg, var(--user_red), #f26b61);
+    --slot_green: linear-gradient(45deg, var(--user_green), #b0e372);
+    --slot_blue: linear-gradient(45deg, var(--user_blue), #2191e1);
+    --slot_purple: linear-gradient(45deg, var(--user_purple), #d188e3);
+    --slot_yellow: linear-gradient(45deg, var(--user_yellow), #d9b444);
+    .VueGamesRoomsOne-body-members-one-rank {
+        display: none;
+    }
+    &.VueGamesRoomsOne {
+        &.mode_2x2 {
+            ._slot_user {
+                .user_slot_0 {
+                    background: var(--slot_red);
+                }
+                .user_slot_1 {
+                    background: var(--slot_green);
+                }
+                .user_slot_3 {
+                    background: var(--slot_blue);
+                }
+                .user_slot_4 {
+                    background: var(--slot_purple);
+                }
+
+                .friend_of_0 {
+                    color: var(--user_red);
+                }
+                .friend_of_1 {
+                    color: var(--user_green);
+                }
+                .friend_of_3 {
+                    color: var(--user_blue);
+                }
+                .friend_of_4 {
+                    color: var(--user_purple);
+                }
+            }
+        }
+        &.mode_regular {
+            ._slot_user {
+                .user_slot_0 {
+                    background: var(--slot_red);
+                }
+                .user_slot_1 {
+                    background: var(--slot_blue);
+                }
+                .user_slot_2 {
+                    background: var(--slot_green);
+                }
+                .user_slot_3 {
+                    background: var(--slot_purple);
+                }
+                .user_slot_4 {
+                    background: var(--slot_yellow);
+                }
+
+                .friend_of_0 {
+                    color: var(--user_red);
+                }
+                .friend_of_1 {
+                    color: var(--user_blue);
+                }
+                .friend_of_2 {
+                    color: var(--user_green);
+                }
+                .friend_of_3 {
+                    color: var(--user_purple);
+                }
+                .friend_of_4 {
+                    color: var(--user_yellow);
+                }
+            }
+        }
+    }
+    .VueGamesRoomsOne-body-members-one {
+        padding-top: var(--statsable-padding-top);
+        &._slot_vs {
+            background-position-x: center;
+            background-position-y: 20px;
+        }
+        .user_slot {
+            width: 85px;
+            height: 85px;
+            margin: 0 auto;
+            padding: 5px;
+            border-radius: 99999px;
+        }
+        &._slot_user {
+            .user_slot > div {
+                border: 5px solid #161a1b;
+            }
+        }
     }
 }
 .VueGamesRoomsOne-body-members-one-stats {
@@ -48,6 +138,7 @@
             margin-right: 3px;
         }
         &.friends,
+        &.ion-person-stalker,
         &.stats,
         &.rank,
         &.mfp {

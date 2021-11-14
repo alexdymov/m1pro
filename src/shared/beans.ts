@@ -28,7 +28,7 @@ export class MarketListingReq extends MReq {
 }
 
 export class FriendsGetReq extends MReq {
-    constructor(public online: Presence) {
+    constructor(public online: Presence | [] = [], public add_user_info: Presence | [] = [], public user_id: number | string | [] = []) {
         super();
     }
 }
