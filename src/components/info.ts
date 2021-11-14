@@ -48,7 +48,6 @@ const opts: ComponentOptions<Vue> = {
             jq.find('div.badge').show();
             jq.find('div.Info-pro-history h3 > strong').each((i, el) => {
                 const jel = jQuery(el);
-                debug(jel.text())
                 if (this.state.isUnseen(jel.text())) {
                     jel.addClass('newver');
                 }

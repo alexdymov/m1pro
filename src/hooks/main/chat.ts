@@ -61,7 +61,6 @@ export class Chat {
 
     private updateCount() {
         const cnt = this.jq.find('div.ignored').length;
-        debug(cnt)
         this.jq.find('div.Gchat-title-menu span.gchat-ignored-count').text(cnt);
     }
 
