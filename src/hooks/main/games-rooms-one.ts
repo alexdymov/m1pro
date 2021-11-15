@@ -30,7 +30,7 @@ export class GamesRoomsOne {
     }
 
     private init() {
-        require('../../style/main/game-room-one.less');
+        require('../../style/main/games-room-one.less');
         // debug('created', this.base.parent_type, this.base);
 
         switch (this.base.parent_type) {
@@ -56,7 +56,7 @@ export class GamesRoomsOne {
         let [invites, bans]: JQuery<HTMLElement>[] = [];
         this.jq.find('div.VueGamesRoomsOne-body-head-info').append(
             invites = jQuery('<div class="header-invites ion-person-add"/>').hide(),
-            bans = jQuery('<div class="header-bans ion-ios-close" kd-tooltip-option-position="center"/>').hide(),
+            bans = jQuery('<div class="header-bans ion-ios-close"/>').hide(),
         );
 
         this.base.$watch('room.bans', (v: Array<number>) => {

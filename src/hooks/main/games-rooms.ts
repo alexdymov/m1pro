@@ -23,7 +23,7 @@ export class GamesRooms {
     }
 
     private init(): void {
-        require('../../style/main/games.less');
+        require('../../style/main/games-rooms.less');
 
         const gamelist = this.jq.find('div.block').last();
         const controls = jQuery('<div class="game-filter" />');
