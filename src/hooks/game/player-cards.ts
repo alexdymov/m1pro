@@ -41,8 +41,8 @@ export class PlayerCards {
     }
 
     private updateTeams(vs: JQuery<HTMLElement>) {
-        vs.find('div[mnpl-team="0"] span').text(this.state.getTeamWorth(0));
-        vs.find('div[mnpl-team="1"] span').text(this.state.getTeamWorth(1));
+        vs.find('div[mnpl-team="0"] span').text(this.state.getTeamWorth(0 ^ this.state.teamReverse));
+        vs.find('div[mnpl-team="1"] span').text(this.state.getTeamWorth(1 ^ this.state.teamReverse));
     }
 
     private initCard(card: JQuery<HTMLElement>) {

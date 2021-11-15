@@ -81,6 +81,7 @@ export default class GameState extends Vue {
     users: { [key: number]: UserInfoLong } = null;
     stor: AsyncStorage = null;
     usersLoaded = false;
+    teamReverse = 0;
 
     init(v: Vue) {
         this.storage = v;
@@ -143,6 +144,7 @@ export default class GameState extends Vue {
         const myidx = players.findIndex(pl => this.isMe(pl));
         const mydata = myidx >= 0 ? players[myidx] : null;
         this.needFixColor = myidx > 0;
+        this.teamReverse = Number(this.party && players[0].team !== 0);
 
         let first = true;
         players.forEach((pl, orderOrig) => {
