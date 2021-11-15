@@ -38,7 +38,7 @@ export class GamesRooms {
 
         title.text('');
 
-        title.append(`<span>${text}<span class="title-counter"/></span>`).append(controls).append(btn);
+        title.append(`<span>${text}<span class="title-counter"/></span>`).append(controls).append(btn).find('span.title-counter').text(this.base.rooms_by_section.other.length);
         this.base.$watch('rooms_by_section.other.length', val => title.find('span.title-counter').text(val));
     }
 }
