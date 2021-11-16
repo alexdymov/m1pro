@@ -1,0 +1,34 @@
+#theme-dark() {
+    .bgc(@color) {
+        body[theme="dark"] & {
+            background-color: @color;
+        }
+    }
+    .color(@color) {
+        body[theme="dark"] & {
+            color: @color;
+        }
+    }
+    .box-shadow(@x: 0, @y: 0, @blur: 1px, @color: #000) {
+        body[theme="dark"] & {
+            box-shadow: @arguments;
+        }
+    }
+}
+#theme-none() {
+    .bgc(@color) {
+        body:not([theme]) & {
+            background-color: @color;
+        }
+    }
+    .color(@color) {
+        body:not([theme]) & {
+            color: @color;
+        }
+    }
+    .box-shadow(@x: 0, @y: 0, @blur: 1px, @color: #000) {
+        body:not([theme]) & {
+            box-shadow: @arguments;
+        }
+    }
+}

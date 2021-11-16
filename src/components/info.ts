@@ -53,6 +53,13 @@ const opts: ComponentOptions<Vue> = {
                 }
             })
         }
+        jq.find('div.Info-pro-history li > blockquote').each((i, el) => {
+            const jel = jQuery(el);
+            jel.before(jQuery('<a href="#">Подробнее</a>').on('click', () => jel.toggle()));
+        });
+        jq.find('div.Info-pro-history li strong').each((i, el) => {
+            jQuery(el).replaceWith(() => `<span class="info-icon ${el.textContent}"/>`);
+        })
     }
 };
 
