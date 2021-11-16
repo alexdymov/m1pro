@@ -11,7 +11,6 @@ export const propDefined = <T>(obj: any, name: string, timeoutms = 3000): Promis
         Object.defineProperty(obj, name, {
             configurable: true,
             set(v) {
-                debug(v);
                 Object.defineProperty(obj, name, { configurable: true, enumerable: true, writable: true, value: v });
                 timeoutms && clearTimeout(timeout);
                 resolve(v);
