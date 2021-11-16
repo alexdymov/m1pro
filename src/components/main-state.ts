@@ -1,17 +1,39 @@
 import Component from 'vue-class-component';
-import { MarketListingData, MarketListingReq, MarketListingThing, MarketLotsData, MarketLotsReq, MResp, UserInfoLong, UsersGetReq, UsersData, FriendsGetReq, FriendsData } from '../shared/beans';
+import { MarketListingData, MarketListingReq, MarketListingThing, MarketLotsData, MarketLotsReq, MResp, UserInfoLong, UsersGetReq, UsersData, FriendsGetReq, FriendsData, RoomsChangeSettings } from '../shared/beans';
 import Vue from 'vue';
 import { debug } from '../util/debug';
 import { propDefinedWindow } from '../util/prop-def';
+
+export class ModeCustomSettings {
+    maxplayers?: number;
+    option_private?: boolean;
+    option_autostart?: boolean;
+    option_restarts?: boolean;
+    game_timers?: boolean;
+    br_corner?: number;
+    game_2x2?: boolean;
+    cmpt_variants?: { [key: number]: boolean };
+}
+
+export class GamesNewSettings {
+    mode?: string;
+    custom: { [key: string]: ModeCustomSettings } = {}
+}
 
 @Component({})
 export default class MainState extends Vue {
     lots: MarketLotsData = null;
     private itemPrices: Map<number, JQueryPromise<number>> = new Map();
     lastSeen = localStorage.getItem('last_pro_version_seen') || '0';
+    gamesNewSettings: GamesNewSettings = null;
     ver = VERSION;
 
     created() {
+        const localSettings = localStorage.getItem('games_new_settings');
+        this.gamesNewSettings = localSettings ? JSON.parse(localSettings) : new GamesNewSettings();
+        this.$watch('gamesNewSettings', (v) => {
+            localStorage.setItem('games_new_settings', JSON.stringify(this.gamesNewSettings));
+        }, { deep: true });
         if (window.API && window.API.isUserSignedIn()) {
             this.loadLots();
         } else {
@@ -83,5 +105,36 @@ export default class MainState extends Vue {
 
     isUnseen(version: string) {
         return version.localeCompare(this.lastSeen, undefined, { numeric: true, sensitivity: 'base' }) > 0;
+    }
+
+    changeSetting(roomId: string, name: string, value: any, token?: string): JQuery.Promise<boolean> {
+        return $.post('/api/rooms.settingsChange', new RoomsChangeSettings(roomId, name, value).withCaptcha(token))
+            .then((res: MResp<any>) => {
+                const def = $.Deferred();
+                if (res.code) {
+                    if (res.code === 8) {
+                        return window.require.async('/js/vuem/Captcha.js').then(() => {
+                            return window._libs.dialog.show({ component: "captcha", buttons: [{ is_default: true, title: "Отмена" }] })
+                                .then((tkn) => this.changeSetting(roomId, name, value, tkn));
+                        })
+                    }
+                    return def.reject(res);
+                } else {
+                    return def.resolve(true);
+                }
+            });
+
+    }
+
+    setCustomSetting(mode: string, opt: string, v: any) {
+        const custom = this.gamesNewSettings.custom;
+        debug('set opt', mode, opt, JSON.parse(JSON.stringify(v)));
+        if (custom[mode]) {
+            Vue.set(custom[mode], opt, v);
+        } else {
+            const val: any = {};
+            val[opt] = v;
+            Vue.set(custom, mode, val);
+        }
     }
 }

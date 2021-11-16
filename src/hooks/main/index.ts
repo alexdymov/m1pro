@@ -5,4 +5,5 @@ import { GamesRooms } from './games-rooms';
 import { CollapseBlock } from './collapse-block';
 import { Item } from './item';
 import { GamesRoomsOne } from './games-rooms-one';
-export { HeaderMenu, Friends, Chat, GamesRooms, CollapseBlock, Item, GamesRoomsOne }
+import { GamesNewRoom } from './games-new-room';
+export { HeaderMenu, Friends, Chat, GamesRooms, CollapseBlock, Item, GamesRoomsOne, GamesNewRoom }

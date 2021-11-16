@@ -2,7 +2,7 @@ import { debug } from '../util/debug';
 import Vue from 'vue';
 import vooker from '../util/vue-hooker';
 import pooker from '../util/page-hooker';
-import { Chat, CollapseBlock, Friends, GamesRooms, HeaderMenu, Item, GamesRoomsOne } from '../hooks/main';
+import { Chat, CollapseBlock, Friends, GamesRooms, HeaderMenu, Item, GamesRoomsOne, GamesNewRoom } from '../hooks/main';
 import { Adaptive, Profile } from '../pages';
 import MainState from '../components/main-state';
 import GamesFilter from '../components/games-filter';
@@ -31,6 +31,7 @@ export const mainStarter = () => {
     const filter = new GamesFilter();
     vooker.ifMount(jq => jq.is('div.VueGamesRooms'), v => new GamesRooms(v, filter));
     vooker.ifMount(jq => jq.is('div.VueGamesRoomsOne'), v => new GamesRoomsOne(v, filter, state));
+    vooker.ifMount(jq => jq.is('div.GamesNewroom'), v => new GamesNewRoom(v, state));
     expmain(state);
     pooker.run();
     window.onReadyToUse(() => {

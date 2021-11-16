@@ -23,6 +23,7 @@ export class GamesRoomsOne {
     private jq: JQuery<Element>;
     private userDefs = new Map<number, JQueryPromise<UserInfoLong>>();
     private friendsDefs = new Map<number, JQueryPromise<Array<number>>>();
+    private modifying = false;
 
     constructor(public base: Vue, private filter: GamesFilter, private state: MainState) {
         this.jq = jQuery(base.$el);
@@ -43,13 +44,59 @@ export class GamesRoomsOne {
                 // due to some circumstances Vue loads here twice, 
                 // first in the 'other' block and then in correct one, 
                 // so we skip the first load here
-                if (this.jq.parents('div.VueGamesRooms > div.block').is(':last-child')) {
+                if (this.jq.parents('div.VueGamesRooms > div.block').is(jQuery('div.VueGamesRooms > div.block').last())) {
                     break;
+                }
+                if (this.base.room.admin === window.API.user.user_id) {
+                    this.initSettings();
                 }
                 this.initRoomInfo();
                 this.initStats();
                 break;
         }
+    }
+
+    private getMode(): string {
+        const room = this.base.room;
+        switch (room.game_submode) {
+            case 0: return "regular";
+            case 2: return room.flags.disposition_mode ? "disposition" : "speeddie";
+            case 3: return "roulette";
+            case 4: return "retro";
+        }
+        return "";
+    }
+
+    private initSettings() {
+        const mode = this.getMode();
+        ['game_timers', 'br_corner'].forEach(opt => {
+            this.base.$watch(`room.settings.${opt}`, v => {
+                if (this.modifying) return;
+                this.state.setCustomSetting(mode, opt, v);
+            });
+        });
+
+        this.checkSettings(mode);
+    }
+
+    private checkSettings(mode: string) {
+        const custom = this.state.gamesNewSettings.custom[mode];
+        this.modifying = true;
+
+        const room = this.base.room;
+        const settings = room.settings;
+
+        const corner = custom?.br_corner ?? 2;
+        settings.br_corner !== corner && (settings.br_corner = corner) !== 2 &&
+            this.state.changeSetting(room.room_id, 'br_corner', settings.br_corner)
+                .fail(err => console.log(err));
+
+        const timers = Number(custom?.game_timers ?? true);
+        settings.game_timers != 0 && (settings.game_timers = timers) == 0 &&
+            this.state.changeSetting(room.room_id, 'game_timers', 0)
+                .fail(err => console.log(err));
+
+        this.base.$nextTick().then(() => this.modifying = false);
     }
 
     private initRoomInfo() {

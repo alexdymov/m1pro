@@ -45,6 +45,12 @@ export class UsersGetReq extends MReq {
     }
 }
 
+export class RoomsChangeSettings extends MReq {
+    constructor(public room_id: string, public param: string, public value: any) {
+        super();
+    }
+}
+
 export enum Presence {
     Yes = 1, No = 0
 }
