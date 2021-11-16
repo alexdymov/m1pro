@@ -9,6 +9,11 @@
             color: @color;
         }
     }
+    .fill(@color) {
+        body[theme="dark"] & {
+            fill: @color;
+        }
+    }
     .box-shadow(@x: 0, @y: 0, @blur: 1px, @color: #000) {
         body[theme="dark"] & {
             box-shadow: @arguments;
@@ -24,6 +29,11 @@
     .color(@color) {
         body:not([theme]) & {
             color: @color;
+        }
+    }
+    .fill(@color) {
+        body:not([theme]) & {
+            fill: @color;
         }
     }
     .box-shadow(@x: 0, @y: 0, @blur: 1px, @color: #000) {

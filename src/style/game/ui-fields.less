@@ -1,29 +1,28 @@
-.table-body-board-fields-one[mnpl-line="0"] .table-body-board-fields-one-lock {
-    bottom: -7px;
-}
-.table-body-board-fields-one[mnpl-line="1"] .table-body-board-fields-one-lock {
-    left: 2px;
-}
-.table-body-board-fields-one[mnpl-line="2"] .table-body-board-fields-one-lock {
-    top: -7px;
-}
-.table-body-board-fields-one[mnpl-line="3"] .table-body-board-fields-one-lock {
-    right: -2px;
-}
-.table-body-board-fields-one[mnpl-line="1"],
-.table-body-board-fields-one[mnpl-line="3"] {
-    .table-body-board-fields-one-lock {
-        top: 0;
-        width: 1px;
-        height: 55px;
-    }
-}
 .table-body-board-fields-one-lock {
     display: flex;
     justify-content: center;
     align-items: center;
     position: absolute;
     width: 100%;
+
+    .table-body-board-fields-one[mnpl-line="0"] & {
+        bottom: -7px;
+    }
+    .table-body-board-fields-one[mnpl-line="1"] & {
+        left: 2px;
+    }
+    .table-body-board-fields-one[mnpl-line="2"] & {
+        top: -7px;
+    }
+    .table-body-board-fields-one[mnpl-line="3"] & {
+        right: -2px;
+    }
+    .table-body-board-fields-one[mnpl-line="1"] &,
+    .table-body-board-fields-one[mnpl-line="3"] & {
+        top: 0;
+        width: 1px;
+        height: 55px;
+    }
 
     > div {
         flex-shrink: 0;
