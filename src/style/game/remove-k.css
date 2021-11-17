@@ -1,6 +1,7 @@
 .table-body-players-card-body-money:after,
 .table-body-board-fields-one-label > div:after,
 .TableFieldcard-data-rows > div ._value._type_money:after,
-.TableContract-content-bottom ._sum:after {
+.TableContract-content-bottom ._sum:after,
+.TableHelper-content-players-row > div:nth-child(2):after {
     content: "" !important;
 }
