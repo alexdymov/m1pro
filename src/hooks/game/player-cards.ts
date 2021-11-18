@@ -35,8 +35,7 @@ export class PlayerCards {
             const vs = jQuery('div.table-body-players-vs').append('<div class="table-body-team" mnpl-team="0"><span class="ion-ios-cart"/></div><div class="table-body-team" mnpl-team="1"><span class="ion-ios-cart"/></div>');
             this.state.$watch('storage.status', () => {
                 this.updateTeams(vs);
-            });
-            this.updateTeams(vs);
+            }, { immediate: true });
         }
     }
 

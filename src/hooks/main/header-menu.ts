@@ -56,11 +56,8 @@ export class HeaderMenu {
         jQuery('.header-right-one._search').attr('kd-tooltip', 'Поиск игроков');
         jQuery('.header-right-one._im').attr('kd-tooltip', 'Чат');
 
-        this.checkVersion();
-        this.state.$watch('lastSeen', () => this.checkVersion());
-
-        this.state.lots && this.showLots();
-        this.state.$watch('lots', () => this.showLots());
+        this.state.$watch('lastSeen', () => this.checkVersion(), { immediate: true });
+        this.state.$watch('lots', () => this.showLots(), { immediate: true });
     }
 
     private newItem(cls: string, it: Item): JQuery<HTMLElement> {
@@ -77,7 +74,7 @@ export class HeaderMenu {
 
     private showLots() {
         const badge = jQuery('.header-right .ion-ios-cart span.badge');
-        if (this.state.lots.count) {
+        if (this.state.lots?.count) {
             badge.show().text(this.state.lots.count);
         } else {
             badge.hide();

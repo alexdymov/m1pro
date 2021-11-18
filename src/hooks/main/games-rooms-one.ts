@@ -108,13 +108,10 @@ export class GamesRoomsOne {
 
         this.base.$watch('room.bans', (v: Array<number>) => {
             this.showBans(v, bans);
-        });
-        this.showBans(this.base.room.bans, bans);
-
+        }, { immediate: true });
         this.base.$watch('room.invites', (v: Array<Array<number>>) => {
             this.showInvites(v, invites);
-        });
-        this.showInvites(this.base.room.invites, invites);
+        }, { immediate: true});
     }
 
     private showInvites(v: number[][], invites: JQuery<HTMLElement>) {
@@ -155,8 +152,7 @@ export class GamesRoomsOne {
         });
         this.base.$watch('players_all', debounce((val: Set<number>) => {
             this.loadUsers(val);
-        }, 300), { deep: true });
-        this.loadUsers(this.base.players_all);
+        }, 300), { deep: true, immediate: true });
     }
 
     private loadUsers(val: Set<number>) {
