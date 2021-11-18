@@ -16,6 +16,7 @@ export const gameStarter = () => {
     vooker.ifBeforeCreate(v => v.$options.name === 'storage', v => state.init(v));
     vooker.ifMount(jq => jq.is('div.TableContract'), v => require('../style/game/table-contract.less'));
     vooker.ifMount(jq => jq.is('div.TableAction'), v => require('../style/game/table-action.less'));
+    vooker.ifBeforeCreate(v => v.$options.name === 'table-helper', v => GameStats.fixTicker(v));
     vooker.ifMount(jq => jq.is('div.TableHelper'), v => new GameStats(v, state));
     vooker.ifMount(jq => jq.is('#ui-fields'), v => {
         new PlayerColors(state);

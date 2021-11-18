@@ -1,7 +1,20 @@
+import merge from 'lodash/merge';
 import Vue from 'vue';
 import GameState from '../../components/game-state';
 import { debug } from '../../util/debug';
 import mutator from '../../util/mutator';
+
+class Ticker {
+    game_time: string
+    time_mod: number
+    time_mod_value: string
+}
+
+declare module 'vue/types/vue' {
+    interface Vue {
+        ticker: Ticker
+    }
+}
 
 export class GameStats {
     private jq: JQuery<Element>;
@@ -15,6 +28,18 @@ export class GameStats {
     constructor(public base: Vue, private state: GameState) {
         this.jq = jQuery(base.$el);
         this.init();
+    }
+
+    static fixTicker(base: Vue) {
+        const old = base.$options.computed.ticker;
+        merge(base.$options, {
+            computed: {
+                ticker: function () {
+                    const tick: Ticker = (<any>old).apply(base);
+                    return { ...tick, time_mod_value: tick.time_mod_value?.replace('k', '') };
+                }
+            }
+        });
     }
 
     private init() {
