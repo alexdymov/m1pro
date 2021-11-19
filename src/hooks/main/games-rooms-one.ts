@@ -103,7 +103,7 @@ export class GamesRoomsOne {
         let [invites, bans]: JQuery<HTMLElement>[] = [];
         this.jq.find('div.VueGamesRoomsOne-body-head-info').append(
             invites = jQuery('<div class="header-invites ion-person-add"/>').hide(),
-            bans = jQuery('<div class="header-bans ion-ios-close"/>').hide(),
+            bans = jQuery('<div class="header-bans ion-ios-close" kd-tooltip-option-position="center"/>').hide(),
         );
 
         this.base.$watch('room.bans', (v: Array<number>) => {
