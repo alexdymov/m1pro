@@ -116,6 +116,7 @@ export default class GameState extends Vue {
     usersLoaded = false;
     teamReverse = 0;
     firstHandledPacket = 0;
+    gameOver = false;
 
     init(v: Vue) {
         this.storage = v;
@@ -191,7 +192,7 @@ export default class GameState extends Vue {
             const pl = this.players.find(pl => pl.user_id === event.user_id);
             switch (event.type) {
                 case 'gameOver':
-                    // TODO: hide some controls
+                    this.gameOver = true;
                     break;
 
                 case 'startBypass':

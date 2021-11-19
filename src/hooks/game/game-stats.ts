@@ -55,6 +55,7 @@ export class GameStats {
         window.onresize = (e) => {
             this.render();
         };
+        this.state.$watch('gameOver', v => v && this.root.hide() && debug('gameover'));
     }
 
     private initExtraStatsTable() {
@@ -105,7 +106,7 @@ export class GameStats {
         const renderSeparately = this.isEnoughWidth();
         const ctr = renderSeparately ? this.stats : this.rootOrig;
         const rerender = renderSeparately !== this.allRenderedSeparately;
-        renderSeparately && this.root.show() || this.root.hide();
+        renderSeparately && !this.state.gameOver && this.root.show() || this.root.hide();
         rerender && this.content.detach().prependTo(ctr);
         this.title.length && rerender && this.title.detach().prependTo(ctr);
         this.title.length && (this.allRenderedSeparately = renderSeparately);
