@@ -35,6 +35,45 @@
         }
     }
 }
-.TableHelper-content-players-row > div > div:first-child {
-    display: none;
+.TableHelper {
+    width: 470px !important;
+    left: 110px !important;
+}
+.TableHelper-content-players {
+    margin: 15px 10px !important;
+}
+.TableHelper-content-players-row {
+    > div > div:first-child {
+        display: none;
+    }
+    .profit_neg {
+        color: #cd3747;
+    }
+    .profit_pos {
+        color: #8cc152;
+    }
+    &.player_border_0 {
+        border-top-color: var(--user_red) !important;
+    }
+    &.player_border_1 {
+        border-top-color: var(--user_blue) !important;
+    }
+    &.player_border_2 {
+        border-top-color: var(--user_green) !important;
+    }
+    &.player_border_3 {
+        border-top-color: var(--user_purple) !important;
+    }
+    &.player_border_4 {
+        border-top-color: var(--user_yellow) !important;
+    }
+}
+.TableHelper-content-players-head,
+.TableHelper-content-players-row {
+    > div:nth-child(4) {
+        width: 65px;
+    }
+    > div:nth-child(5) {
+        width: 40px;
+    }
 }

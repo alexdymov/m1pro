@@ -14,6 +14,9 @@ export class Player {
     winrate: number;
     mfp_ban_history: BanInfo;
     friendship: Friendship;
+    laps = 0;
+    income = 0;
+    expenses = 0;
 
     constructor(
         public user_id: number,
@@ -33,12 +36,37 @@ interface GameStatus {
     action_player: number
 }
 
+interface GameEvent {
+    type: string
+    user_id: number
+    money?: number
+    sum?: number
+    chance_id?: number
+    destinations_count?: number
+}
+
 interface UpdateAction {
     id: number
-    events: Array<any>
+    events: Array<GameEvent>
     status: GameStatus
     time: any
 }
+
+interface Packet {
+    msg: UpdateAction
+    no_events?: boolean
+    no_status?: boolean
+}
+
+interface ChanceCard {
+    range?: Array<number>
+    rangeStep?: number
+    sum?: number
+    text: string
+    type: string
+}
+
+const WORMHOLE_DEFAULT_FREE_DESTINATIONS = 3;
 
 declare module 'vue/types/vue' {
     interface Vue {
@@ -47,6 +75,8 @@ declare module 'vue/types/vue' {
         }
         about: {
             is_m1tv: boolean
+            gs_game_id: string
+            gs_id: string
         }
         vms: {
             fields: {
@@ -59,9 +89,12 @@ declare module 'vue/types/vue' {
             coeff_field_drop?: number
             coeff_reject_mortgaged?: number
             auction_mortgaged?: number
+            chance_cards: Array<ChanceCard>
+            WORMHOLE_EXTRA_DESTINATION_COST: number
         }
         status: GameStatus
-        update: (e: UpdateAction, t: any) => void
+        update: (e: UpdateAction, t: boolean) => void
+        packetProcess: (e: Packet, t: boolean) => void
         api_user: any
         is_ready: boolean
     }
@@ -82,6 +115,7 @@ export default class GameState extends Vue {
     stor: AsyncStorage = null;
     usersLoaded = false;
     teamReverse = 0;
+    firstHandledPacket = 0;
 
     init(v: Vue) {
         this.storage = v;
@@ -106,7 +140,8 @@ export default class GameState extends Vue {
         });
 
         const ref = this;
-        const old = v.$options.methods.update;
+        const oldupd = v.$options.methods.update;
+        const oldpp = v.$options.methods.packetProcess;
         merge(v.$options, {
             computed: {
                 player_indexes: function () {
@@ -123,12 +158,104 @@ export default class GameState extends Vue {
                 }
             },
             methods: {
-                update(e: UpdateAction, t: any) {
-                    old.apply(v, arguments);
+                update(e: UpdateAction, t: boolean) {
+                    oldupd.apply(v, arguments);
                     ref.updates++;
+                },
+                packetProcess(e: Packet, t: boolean) {
+                    debug('packet', e.msg.id, e.msg.status?.action_player, ref.players.find(pl => e.msg.status?.action_player === pl.user_id)?.nick, e.msg.events?.map(event => `${event.type}=${event.money}`), t);
+                    ref.firstHandledPacket === 0 && (ref.firstHandledPacket = e.msg.id, ref.loadDemo().then(msgs => {
+                        debug('start process old packets', msgs.length);
+                        msgs.some(msg => {
+                            debug('old packet', e.msg.status.action_player, ref.players.find(pl => e.msg.status.action_player === pl.user_id)?.nick, msg.id, msg.events?.map(event => `${event.type}=${event.money}`));
+                            if (msg.id === ref.firstHandledPacket) {
+                                debug('stop process old packets')
+                                return true;
+                            }
+                            ref.handlePacket({ msg });
+                        })
+                    }));
+                    try {
+                        ref.handlePacket(e);
+                    } catch (error) {
+                        console.error('error handling packet', e, error);
+                    }
+                    oldpp.apply(v, arguments);
                 }
             }
         });
+    }
+
+    private handlePacket(packet: Packet) {
+        packet.msg.events?.forEach(event => {
+            const pl = this.players.find(pl => pl.user_id === event.user_id);
+            switch (event.type) {
+                case 'gameOver':
+                    // TODO: hide some controls
+                    break;
+
+                case 'startBypass':
+                    pl.laps++;
+                case 'start_bonus':
+                case 'insuranceReturn':
+                case 'jackpot_win':
+                case 'jackpot_superprize_win':
+                case 'russianRoulette_alive':
+                case 'cash_plus':
+                case 'credit_taken':
+                    pl.income += event.money ?? event.sum ?? 0;
+                    break;
+
+                case 'startBypassFeePaid':
+                    pl.laps++;
+                case 'feePaid':
+                case 'credit_payed':
+                case 'jackpot_lose':
+                case 'jackpot_superprize_funded':
+                case 'jackpot_paid':
+                case 'unjailedByFee':
+                case 'russianRoulette_process':
+                    pl.expenses += event.money ?? event.sum ?? 0;
+                    break;
+
+                case 'wormhole_opened':
+                    pl.expenses += this.storage.config.WORMHOLE_EXTRA_DESTINATION_COST * (event.destinations_count - WORMHOLE_DEFAULT_FREE_DESTINATIONS);
+                    break;
+
+                case 'chance':
+                    const chanceCard = this.storage.config.chance_cards[event.chance_id];
+                    const type = chanceCard.type;
+                    debug('chance', type)
+                    switch (type) {
+                        case 'cash_in':
+                            pl.income += event.money ?? event.sum ?? 0;
+                            break;
+                        case 'birthday':
+                            pl.income += this.getBirthdayMoneyFor(pl, chanceCard.sum);
+                            break;
+                    }
+                    break;
+            }
+        })
+    }
+
+    private loadDemo(): JQueryPromise<Array<UpdateAction>> {
+        return $.get(`https://demos.monopoly-one.com/dl/${this.storage.about.gs_id}/${this.storage.about.gs_game_id}.mid`)
+            .then((res: string) => {
+                return res.split("\n").map(line => JSON.parse(line));
+            }).fail((err) => console.error('failed to load demo', err));
+    }
+
+    private getBirthdayMoneyFor(bpl: Player, sum: number): number {
+        const playersToPay = this.players
+            .map(pl => ({ pl, spl: this.storage.status.players.find(sp => sp.user_id === pl.user_id) }))
+            .filter(({ spl }) => spl.status !== -1)
+            .filter(({ pl }) => this.party ? pl.team !== bpl.team : pl.user_id !== bpl.user_id);
+        return playersToPay.map(({ pl, spl }) => {
+            const expense = Math.min(spl.money, sum);
+            pl.expenses += expense;
+            return expense;
+        }).reduce((a, b) => a + b, 0);
     }
 
     load() {
