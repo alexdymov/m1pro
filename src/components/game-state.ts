@@ -4,6 +4,10 @@ import { AsyncStorage, GameField, GamePlayer, Gender, Rank, UserInfoLong, BanInf
 import merge from "lodash/merge";
 import { debug } from '../util/debug';
 
+class GameSettings {
+    splitCommonStats = true;
+}
+
 export class Player {
     nick: string;
     gender: Gender;
@@ -117,6 +121,15 @@ export default class GameState extends Vue {
     teamReverse = 0;
     firstHandledPacket = 0;
     gameOver = false;
+    settings: GameSettings = null;
+
+    created() {
+        const gameSettings = localStorage.getItem('game_settings');
+        this.settings = gameSettings ? JSON.parse(gameSettings) : new GameSettings();
+        this.$watch('settings', (v) => {
+            localStorage.setItem('game_settings', JSON.stringify(this.settings));
+        }, { deep: true });
+    }
 
     init(v: Vue) {
         this.storage = v;

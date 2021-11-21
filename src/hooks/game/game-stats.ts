@@ -2,7 +2,6 @@ import merge from 'lodash/merge';
 import Vue from 'vue';
 import GameState from '../../components/game-state';
 import { debug } from '../../util/debug';
-import mutator from '../../util/mutator';
 
 class Ticker {
     game_time: string
@@ -53,7 +52,7 @@ export class GameStats {
         this.initExtraStatsTable();
         this.observeTabSwitch();
         window.onresize = (e) => {
-            this.render();
+            this.renderCommonStats();
         };
         this.state.$watch('gameOver', v => v && this.root.hide() && debug('gameover'));
     }
@@ -86,24 +85,40 @@ export class GameStats {
         this.rootOrig = this.jq.find('div.TableHelper-content > div');
         this.content = this.rootOrig.find('div.TableHelper-content-stat');
         this.title = this.rootOrig.find('div._matchtitle');
-        this.render();
+        this.renderCommonStats();
     }
 
     private observeTabSwitch() {
-        mutator.mutateAdded(this.rootOrig.parent(), el => {
-            if (!el.has('div._matchtitle').length)
-                return;
-            if (this.allRenderedSeparately) {
-                this.title.remove();
-                this.content.remove();
+        this.base.$watch('tab', v => {
+            switch (v) {
+                case 0:
+                    if (this.allRenderedSeparately) {
+                        this.title.remove();
+                        this.content.remove();
+                    }
+                    this.loadCommonStatsElements();
+                    this.initExtraStatsTable();
+                    break;
+                case 1:
+                    this.jq.find('div.TableHelper-content-options').append(
+                        jQuery(`
+                            <div class="form2-row">
+                                <div class="form2-checkbox">
+                                    <input type="checkbox" class="switcher" id="table-opt-split-common-stats"> <label for="table-opt-split-common-stats">Показывать общую статистику в отдельном блоке</label>
+                                </div>
+                            </div>
+                            `)
+                            .find('input').prop('checked', this.state.settings.splitCommonStats).on('change', (e) => {
+                                this.state.settings.splitCommonStats = e.delegateTarget.checked;
+                                this.renderCommonStats();
+                            }).end())
+                    break;
             }
-            this.loadCommonStatsElements();
-            this.initExtraStatsTable();
         });
     }
 
-    private render() {
-        const renderSeparately = this.isEnoughWidth();
+    private renderCommonStats() {
+        const renderSeparately = this.isEnoughWidth() && this.state.settings.splitCommonStats;
         const ctr = renderSeparately ? this.stats : this.rootOrig;
         const rerender = renderSeparately !== this.allRenderedSeparately;
         renderSeparately && !this.state.gameOver && this.root.show() || this.root.hide();
