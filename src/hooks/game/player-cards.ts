@@ -47,11 +47,7 @@ export class PlayerCards {
     private initCard(card: JQuery<HTMLElement>) {
         const body = card.find('div.table-body-players-card-body');
 
-        const circle = jQuery('<div class="table-body-players-card-body-circle"/>').prependTo(body);
-        circle.append(
-            card.find('div.table-body-players-card-body-avatar').detach(),
-            card.find('div.table-body-players-card-body-timer').detach()
-        );
+        this.attachCircle(body, card);
 
         const stats = jQuery('<div class="table-body-players-card-body-stats"/>').appendTo(body);
         let [credit, share, assets]: JQuery<HTMLElement>[] = [];
@@ -62,25 +58,10 @@ export class PlayerCards {
             credit = jQuery('<div class="table-body-players-card-body-credit ion-card"><span/><div class="avail"/></div>').hide()
         );
 
-        const extra = jQuery('<div class="table-body-players-card-body-extra"/>').appendTo(body).hide();
-        const extraBtn = jQuery('<div class="table-body-players-card-body-show-extra ion-plus-circled"/>').appendTo(body).hide();
-        let score: JQuery<HTMLElement>;
-        extra.append(
-            score = jQuery('<div class="table-body-players-card-body-score ion-scissors"/>').text('0'),
-            jQuery('<div class="table-body-players-card-body-games ion-stats-bars"/>'),
-            jQuery('<div class="table-body-players-card-body-winrate ion-pie-graph"/>')
-        );
-        extraBtn.on('mouseenter', () => {
-            extra.show();
-            stats.hide();
-        });
-        extraBtn.on('mouseleave', () => {
-            extra.hide();
-            stats.show();
-        });
-
         const order = Number(card.mnpl('order'));
         const idx = this.state.players.findIndex(pl => pl.order === order);
+        const extraBtn = this.initExtraStats(body, stats, idx);
+
         const pl = this.state.players[idx];
         card.find('div._nick, div.table-body-players-card-body-avatar > div, div.table-body-players-card-body-timer')
             .on('click', () => window.PageNavigation.openInNewTab(`/profile/${pl.user_id}`));
@@ -105,9 +86,37 @@ export class PlayerCards {
                 [credit, share, assets, extraBtn].forEach(jq => jq.hide());
             }
         });
+    }
+
+    private initExtraStats(body: JQuery<HTMLElement>, stats: JQuery<HTMLElement>, idx: number) {
+        const extra = jQuery('<div class="table-body-players-card-body-extra"/>').appendTo(body).hide();
+        const extraBtn = jQuery('<div class="table-body-players-card-body-show-extra ion-plus-circled"/>').appendTo(body).hide();
+        let score: JQuery<HTMLElement>;
+        extra.append(
+            score = jQuery('<div class="table-body-players-card-body-score ion-scissors"/>').text('0'),
+            jQuery('<div class="table-body-players-card-body-games ion-stats-bars"/>'),
+            jQuery('<div class="table-body-players-card-body-winrate ion-pie-graph"/>')
+        );
+        extraBtn.on('mouseenter', () => {
+            extra.show();
+            stats.hide();
+        });
+        extraBtn.on('mouseleave', () => {
+            extra.hide();
+            stats.show();
+        });
         this.state.$watch(`storage.status.players.${idx}.score`, (val: number) => {
             score.text(this.state.formatMoney(val));
         });
+        return extraBtn;
+    }
+
+    private attachCircle(body: JQuery<HTMLElement>, card: JQuery<HTMLElement>) {
+        const circle = jQuery('<div class="table-body-players-card-body-circle"/>').prependTo(body);
+        circle.append(
+            card.find('div.table-body-players-card-body-avatar').detach(),
+            card.find('div.table-body-players-card-body-timer').detach()
+        );
     }
 
     private updateCard(card: JQuery<HTMLElement>) {
@@ -127,7 +136,7 @@ export class PlayerCards {
 
     private changeCreditStatus(spl: GamePlayer, jq: JQuery<HTMLElement>) {
         const pay = spl.credit_payRound;
-        // debug(spl.user_id, spl.credit_payRound, spl.credit_nextTakeRound, this.state.storage.status.round);
+        debug(spl.user_id, spl.credit_payRound, spl.credit_nextTakeRound, this.state.storage.status.round);
         const roundLeft = <number>(pay ? spl.credit_payRound : spl.credit_nextTakeRound) - this.state.storage.status.round;
         // debug(roundLeft)
         const status = jq.find('div');
