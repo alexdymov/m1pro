@@ -98,7 +98,7 @@ export class PlayerCards {
         }
         this.state.$watch(`storage.status.players.${idx}.credit_toPay`, (val) => {
             // debug('credit_toPay', val)
-            this.changeCreditStatus(spl, credit);
+            this.changeCreditStatus(this.state.storage.status.players[idx], credit);
         });
         this.state.$watch(`storage.status.players.${idx}.status`, (status: number) => {
             if (status === -1) {
