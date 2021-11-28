@@ -37,10 +37,6 @@ export class LockableFields {
             ctr.append(btn);
             checkLocked(k, this.isLocked(k));
 
-            if (!v.owner_true) {
-                btn.show();
-            }
-
             this.state.$watch(() => this.state.storage.vms.fields.fields_with_equipment.get(k).owner_true, (val) => {
                 if (val) {
                     btn.hide();
@@ -50,7 +46,7 @@ export class LockableFields {
                 } else {
                     btn.show();
                 }
-            });
+            }, { immediate: true });
         });
     }
 
