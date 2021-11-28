@@ -112,6 +112,7 @@ export default class GameState extends Vue {
     needFixColor = false;
     storage: Vue = null;
     loaded = false;
+    mePlaying = false;
     updates = 0;
     updateActionPlayer = 0;
     lockedFields = new Set<number>();
@@ -273,16 +274,17 @@ export default class GameState extends Vue {
     }
 
     load() {
-        this.loaded = true;
         this.user = window.API.user;
         this.party = this.storage.flags.game_2x2;
         this.loadPlayers();
         this.stor.load(this.players.map(pl => pl.user_id));
+        this.loaded = true;
     }
 
     private loadPlayers() {
         const players = this.storage.status.players;
         const myidx = players.findIndex(pl => this.isMe(pl));
+        this.mePlaying = myidx >= 0;
         const mydata = myidx >= 0 ? players[myidx] : null;
         this.needFixColor = myidx > 0;
         this.teamReverse = Number(this.party && players[0].team !== 0);

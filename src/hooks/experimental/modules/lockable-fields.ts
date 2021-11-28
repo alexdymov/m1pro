@@ -5,7 +5,7 @@ export class LockableFields {
     constructor(private state: GameState) {
         require('../../../style/game/lockable-fields.less');
         state.$watch('loaded', () => {
-            if (!state.storage.about.is_m1tv) {
+            if (!state.storage.about.is_m1tv && state.mePlaying) {
                 // this.lockAll();
                 this.init();
             }
