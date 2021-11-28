@@ -107,7 +107,7 @@ export class PlayerCards {
         });
         this.state.$watch(`storage.status.players.${idx}.score`, (val: number) => {
             score.text(this.state.formatMoney(val));
-        });
+        }, { immediate: true });
         return extraBtn;
     }
 
