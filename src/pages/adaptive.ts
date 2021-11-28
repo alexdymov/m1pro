@@ -26,9 +26,12 @@ export class Adaptive {
         if (window.matchMedia('(min-width: 2048px)').matches) {
             this.arrangeForWide();
             this.adaptColumns(6, 4);
-        } else if (window.matchMedia('(min-width: 1600px)').matches) {
+        } else if (window.matchMedia('(min-width: 1900px)').matches) {
             this.arrangeForWide();
             this.adaptColumns(5, 5);
+        } else if (window.matchMedia('(min-width: 1600px)').matches) {
+            this.arrangeForWide();
+            this.adaptColumns(4, 6);
         } else {
             this.arrangeForOriginal();
             this.defaultColumns();
