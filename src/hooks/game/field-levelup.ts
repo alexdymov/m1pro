@@ -67,6 +67,7 @@ export class FieldLevelUp {
             this.state.storage.action_types.has('levelUp') &&
             !field.mortgaged &&
             field.levelUpCost !== false &&
+            field.level < (field.levels.length - 1) &&
             perso.can_build &&
             this.isUnevenCase(field, perso) &&
             !new Set(this.state.storage.current_move.levelUpped ?? []).has(field.group);
