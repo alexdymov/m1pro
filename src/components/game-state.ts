@@ -95,6 +95,8 @@ declare module 'vue/types/vue' {
             auction_mortgaged?: number
             chance_cards: Array<ChanceCard>
             WORMHOLE_EXTRA_DESTINATION_COST: number
+            LEVEL_CHANGE_NO_MNPL: number
+            UNEVEN_LEVEL_CHANGE: number
         }
         status: GameStatus
         update: (e: UpdateAction, t: boolean) => void

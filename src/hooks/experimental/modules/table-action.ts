@@ -8,7 +8,8 @@ declare module 'vue/types/vue' {
         action_types: Set<string>
         action: (event: PointerEvent, type: string, s: any) => void
         current_move: {
-            field: number
+            field?: number
+            levelUpped?: Array<number>
         }
     }
 }

@@ -1,4 +1,4 @@
-import { GameStats, PlayerCardMenu, PlayerCards, PlayerColors } from '../hooks/game';
+import { FieldLevelUp, GameStats, PlayerCardMenu, PlayerCards, PlayerColors } from '../hooks/game';
 import vooker from '../util/vue-hooker';
 import Vue from 'vue';
 import { debug } from '../util/debug';
@@ -22,6 +22,7 @@ export const gameStarter = () => {
         new PlayerColors(state);
         new PlayerCards(state);
         new PlayerCardMenu(state);
+        new FieldLevelUp(v, state);
     });
     expgame(state);
 }

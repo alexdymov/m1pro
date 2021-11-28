@@ -24,6 +24,9 @@ declare global {
             users_data: {
                 [key: number]: UserData
             }
+            GameAPI: {
+                action: () => void
+            }
             getAssetsWorth: (e: any) => number
             getGameTime: () => number
         }
