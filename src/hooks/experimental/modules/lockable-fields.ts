@@ -1,9 +1,9 @@
 import GameState from '../../../components/game-state';
 import { debug } from '../../../util/debug';
 
-export class UiFields {
+export class LockableFields {
     constructor(private state: GameState) {
-        require('../../../style/game/ui-fields.less');
+        require('../../../style/game/lockable-fields.less');
         state.$watch('loaded', () => {
             if (!state.storage.about.is_m1tv) {
                 // this.lockAll();
