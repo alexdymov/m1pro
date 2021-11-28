@@ -180,13 +180,13 @@ export default class GameState extends Vue {
                     ref.updates++;
                 },
                 packetProcess(e: Packet, t: boolean) {
-                    debug('packet', e.msg.id, e.msg.status?.action_player, ref.players.find(pl => e.msg.status?.action_player === pl.user_id)?.nick, e.msg.events?.map(event => `${event.type}=${event.money}`), t);
+                    // debug('packet', e.msg.id, e.msg.status?.action_player, ref.players.find(pl => e.msg.status?.action_player === pl.user_id)?.nick, e.msg.events?.map(event => `${event.type}=${event.money}`), t);
                     ref.firstHandledPacket === 0 && (ref.firstHandledPacket = e.msg.id, ref.loadDemo().then(msgs => {
-                        debug('start process old packets', msgs.length);
+                        // debug('start process old packets', msgs.length);
                         msgs.some(msg => {
                             debug('old packet', e.msg.status.action_player, ref.players.find(pl => e.msg.status.action_player === pl.user_id)?.nick, msg.id, msg.events?.map(event => `${event.type}=${event.money}`));
                             if (msg.id === ref.firstHandledPacket) {
-                                debug('stop process old packets')
+                                // debug('stop process old packets')
                                 return true;
                             }
                             ref.handlePacket({ msg });
