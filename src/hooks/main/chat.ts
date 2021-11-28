@@ -85,6 +85,8 @@ export class Chat {
         if (ignored) {
             jq.addClass('ignored');
             this.showIgnored && jq.addClass('shown') || jq.removeClass('shown');
+        } else {
+            jq.removeClass('ignored');
         }
     }
 
