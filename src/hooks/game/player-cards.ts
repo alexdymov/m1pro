@@ -1,6 +1,7 @@
 import GameState from "../../components/game-state";
 import { debug } from '../../util/debug';
 import { GamePlayer, Friendship, Gender } from '../../shared/beans';
+import { Player } from '../../components/game-state';
 
 export class PlayerCards {
     constructor(private state: GameState) {
@@ -91,9 +92,11 @@ export class PlayerCards {
     private initExtraStats(body: JQuery<HTMLElement>, stats: JQuery<HTMLElement>, idx: number) {
         const extra = jQuery('<div class="table-body-players-card-body-extra"/>').appendTo(body).hide();
         const extraBtn = jQuery('<div class="table-body-players-card-body-show-extra ion-plus-circled"/>').appendTo(body).hide();
-        let score: JQuery<HTMLElement>;
+        let [score, income, expenses]: JQuery<HTMLElement>[] = [];
         extra.append(
             score = jQuery('<div class="table-body-players-card-body-score ion-scissors"/>').text('0'),
+            income = jQuery('<div class="table-body-players-card-body-income ion-plus"/>'),
+            expenses = jQuery('<div class="table-body-players-card-body-expenses ion-minus"/>'),
             jQuery('<div class="table-body-players-card-body-games ion-stats-bars"/>'),
             jQuery('<div class="table-body-players-card-body-winrate ion-pie-graph"/>')
         );
@@ -108,6 +111,10 @@ export class PlayerCards {
         this.state.$watch(`storage.status.players.${idx}.score`, (val: number) => {
             score.text(this.state.formatMoney(val));
         }, { immediate: true });
+        this.state.$watch(`players.${idx}`, (pl: Player) => {
+            income.text(this.state.formatMoney(pl.income));
+            expenses.text(this.state.formatMoney(pl.expenses));
+        }, { deep: true, immediate: true });
         return extraBtn;
     }
 
