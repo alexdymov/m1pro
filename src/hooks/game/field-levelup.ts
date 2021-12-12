@@ -70,7 +70,8 @@ export class FieldLevelUp {
             field.level < (field.levels.length - 1) &&
             perso.can_build &&
             this.isUnevenCase(field, perso) &&
-            !new Set(this.state.storage.current_move.levelUpped ?? []).has(field.group);
+            !new Set(this.state.storage.current_move.levelUpped ?? []).has(field.group) &&
+            !this.state.storage.about.is_m1tv;
         // debug('check lvlup', field_id, show, perso, this.state.storage.action_types)
         if (show) {
             btn.show();
