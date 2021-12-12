@@ -4,7 +4,7 @@ import { debug } from '../../util/debug';
 declare module 'vue/types/vue' {
     interface Vue {
         contract_ui: Array<{ sum: string }>
-        contract: { money_from: number, money_to: number }
+        contract: { money_from: number, money_to: number, user_id_from: number }
         is_m1tv: boolean
     }
 }
@@ -36,7 +36,7 @@ export class TableContract {
             }).end();
         this.base.$watch('contract_ui', v => {
             const [ left, right ] = this.getSums();
-            if (left !== right) {
+            if (left !== right && this.base.contract.user_id_from === window.API.user.user_id) {
                 el.show();
             } else {
                 el.hide();
