@@ -14,7 +14,7 @@ export const gameStarter = () => {
     require('../style/game/tips.css');
     require('../style/game/remove-k.css');
     vooker.ifBeforeCreate(v => v.$options.name === 'storage', v => state.init(v));
-    vooker.ifMount(jq => jq.is('div.TableContract'), v => new TableContract(v));
+    vooker.ifMount(jq => jq.is('div.TableContract'), v => new TableContract(v, state));
     vooker.ifMount(jq => jq.is('div.TableAction'), v => require('../style/game/table-action.less'));
     vooker.ifBeforeCreate(v => v.$options.name === 'table-helper', v => GameStats.fixTicker(v));
     vooker.ifMount(jq => jq.is('div.TableHelper'), v => new GameStats(v, state));

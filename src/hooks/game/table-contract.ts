@@ -1,10 +1,11 @@
 import Vue from 'vue';
+import GameState from '../../components/game-state';
 import { debug } from '../../util/debug';
 
 declare module 'vue/types/vue' {
     interface Vue {
         contract_ui: Array<{ sum: string }>
-        contract: { money_from: number, money_to: number, user_id_from: number }
+        contract: { money_from: number, money_to: number, user_id_from: number, user_id_to: number }
         is_m1tv: boolean
     }
 }
@@ -12,7 +13,7 @@ declare module 'vue/types/vue' {
 export class TableContract {
     private jq: JQuery<Element>;
 
-    constructor(public base: Vue) {
+    constructor(public base: Vue, private state: GameState) {
         this.jq = jQuery(base.$el);
         if (!base.is_m1tv) {
             this.init();
@@ -36,7 +37,10 @@ export class TableContract {
             }).end();
         this.base.$watch('contract_ui', v => {
             const [ left, right ] = this.getSums();
-            if (left !== right && this.base.contract.user_id_from === window.API.user.user_id) {
+            const outgoing = this.base.contract.user_id_from === window.API.user.user_id;
+            const team = this.state.players.find(pl => pl.user_id === window.API.user.user_id).team;
+            const toTeammate = this.state.party && this.state.players.find(pl => pl.user_id === this.base.contract.user_id_to).team === team;
+            if (left !== right && outgoing && !toTeammate) {
                 el.show();
             } else {
                 el.hide();
