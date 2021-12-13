@@ -10,6 +10,8 @@ declare module 'vue/types/vue' {
         current_move: {
             field?: number
             levelUpped?: Array<number>
+            moneyToPay?: number
+            pay?: number
         }
     }
 }

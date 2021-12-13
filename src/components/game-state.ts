@@ -172,7 +172,10 @@ export default class GameState extends Vue {
                     if (!ref.loaded) {
                         ref.load();
                     }
-                }
+                }/*,
+                'status.current_move': (v: any) => {
+                    Object.keys(v).length && debug('move', JSON.parse(JSON.stringify(v)), this.storage.status.action_player)
+                }*/
             },
             methods: {
                 update(e: UpdateAction, t: boolean) {
@@ -339,7 +342,7 @@ export default class GameState extends Vue {
         return window.parsers.numberToSpacedString(Math.round(res), ",");
     }
 
-    private getPlayerFieldsWorth(id: number): number {
+    getPlayerFieldsWorth(id: number): number {
         let res = 0;
         const excludeGroups = new Array<number>();
         this.storage.vms.fields.fields_with_equipment.forEach(v => {
@@ -354,17 +357,23 @@ export default class GameState extends Vue {
             if (v.owner_true !== id || v.mortgaged === true || excludeGroups.includes(v.group)) {
                 return;
             }
-            if (this.storage.config.coeff_mortgage) {
-                res += Math.round(v.buy * this.storage.config.coeff_mortgage);
-                if (this.storage.config.coeff_reject_mortgaged) {
-                    res += Math.round(v.buy * this.storage.config.coeff_mortgage * this.storage.config.coeff_reject_mortgaged);
-                } else if (this.storage.config.auction_mortgaged) {
-                    res += Math.round(v.buy * (1 - this.storage.config.coeff_mortgage));
-                }
-            } else if (this.storage.config.coeff_field_drop) {
-                res += Math.round(v.buy * this.storage.config.coeff_field_drop);
-            }
+            res += this.getFieldMortgageWorth(v);
         });
+        return res;
+    }
+
+    getFieldMortgageWorth(field: GameField) {
+        let res = 0;
+        if (this.storage.config.coeff_mortgage) {
+            res += Math.round(field.buy * this.storage.config.coeff_mortgage);
+            if (this.storage.config.coeff_reject_mortgaged) {
+                res += Math.round(field.buy * this.storage.config.coeff_mortgage * this.storage.config.coeff_reject_mortgaged);
+            } else if (this.storage.config.auction_mortgaged) {
+                res += Math.round(field.buy * (1 - this.storage.config.coeff_mortgage));
+            }
+        } else if (this.storage.config.coeff_field_drop) {
+            res += Math.round(field.buy * this.storage.config.coeff_field_drop);
+        }
         return res;
     }
 
