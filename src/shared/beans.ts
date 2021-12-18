@@ -2,7 +2,7 @@
 export class MReq {
     access_token: string;
     sct: string;
-    private recaptcha_token?: string;
+    private recaptcha_token: string | [] = [];
 
     constructor() {
         this.access_token = localStorage.getItem('access_token');
@@ -10,7 +10,7 @@ export class MReq {
     }
 
     withCaptcha(token: string): MReq {
-        this.recaptcha_token = token;
+        this.recaptcha_token = token ?? [];
         return this;
     }
 }
