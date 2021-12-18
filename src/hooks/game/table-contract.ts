@@ -27,6 +27,7 @@ export class TableContract {
         this.initEqBtn();
         this.initPaymentHelper();
         this.base.$watch('contract_ui', v => {
+            if (!v) return;
             this.checkEq();
         }, { deep: true });
     }
@@ -35,6 +36,7 @@ export class TableContract {
         this.payhelp = jQuery('<div class="TableContract-actions-payment"><span>К оплате: <span class="paysum"/></span></div>').prependTo(this.jq.find('div.TableContract-actions'));
         this.diffhelp = jQuery('<div class="TableContract-content-payment"><span class="paydifftext"/>: <span class="paydiff"/><span class="paydiff_withmort"> (с закладом текущих полей <span class="paydifftext_mort"/>: <span class="paydiff_mort"/>)</span></div>').appendTo(this.jq.find('div.TableContract-content'));;
         this.base.$watch('contract_ui', v => {
+            if (!v) return;
             const user = this.base.contract.user_id_from;
             const spl = this.state.storage.status.players.find(spl => spl.user_id === user);
             const field = this.state.storage.vms.fields.fields_with_equipment.get(spl.position);
