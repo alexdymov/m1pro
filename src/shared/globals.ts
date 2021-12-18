@@ -2,7 +2,7 @@ import { MarketLotThing, UserInfoLong, UserData, SocketData, SocketEvent, BanInf
 
 declare global {
     interface Window {
-        onReadyToUse: (fn: any) => void;
+        onReadyToUse: (fn: any) => void
         require: {
             async: (src: string) => Promise<any>
         }
@@ -26,6 +26,9 @@ declare global {
             }
             GameAPI: {
                 action: () => void
+            }
+            UI: {
+                getUserColorById: (id: number) => string
             }
             getAssetsWorth: (e: any) => number
             getGameTime: () => number

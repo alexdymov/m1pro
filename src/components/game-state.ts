@@ -98,6 +98,12 @@ declare module 'vue/types/vue' {
             LEVEL_CHANGE_NO_MNPL: number
             UNEVEN_LEVEL_CHANGE: number
         }
+        time: {
+            delta: number
+            inactive: number
+            ts_now: number
+            ts_start: number
+        }
         status: GameStatus
         update: (e: UpdateAction, t: boolean) => void
         packetProcess: (e: Packet, t: boolean) => void
@@ -123,6 +129,7 @@ export default class GameState extends Vue {
     usersLoaded = false;
     teamReverse = 0;
     firstHandledPacket = 0;
+    lastPacket = 0;
     gameOver = false;
     settings: GameSettings = null;
 
@@ -184,10 +191,11 @@ export default class GameState extends Vue {
                 },
                 packetProcess(e: Packet, t: boolean) {
                     // debug('packet', e.msg.id, e.msg.status?.action_player, ref.players.find(pl => e.msg.status?.action_player === pl.user_id)?.nick, e.msg.events?.map(event => `${event.type}=${event.money}`), t);
+                    ref.lastPacket = e.msg.id;
                     ref.firstHandledPacket === 0 && (ref.firstHandledPacket = e.msg.id, ref.loadDemo().then(msgs => {
                         // debug('start process old packets', msgs.length);
                         msgs.some(msg => {
-                            debug('old packet', e.msg.status.action_player, ref.players.find(pl => e.msg.status.action_player === pl.user_id)?.nick, msg.id, msg.events?.map(event => `${event.type}=${event.money}`));
+                            // debug('old packet', e.msg.status.action_player, ref.players.find(pl => e.msg.status.action_player === pl.user_id)?.nick, msg.id, msg.events?.map(event => `${event.type}=${event.money}`));
                             if (msg.id === ref.firstHandledPacket) {
                                 // debug('stop process old packets')
                                 return true;
@@ -245,7 +253,7 @@ export default class GameState extends Vue {
                 case 'chance':
                     const chanceCard = this.storage.config.chance_cards[event.chance_id];
                     const type = chanceCard.type;
-                    debug('chance', type)
+                    // debug('chance', type)
                     switch (type) {
                         case 'cash_in':
                             pl.income += event.money ?? event.sum ?? 0;
@@ -259,7 +267,7 @@ export default class GameState extends Vue {
         })
     }
 
-    private loadDemo(): JQueryPromise<Array<UpdateAction>> {
+    public loadDemo(): JQueryPromise<Array<UpdateAction>> {
         return $.get(`https://demos.monopoly-one.com/dl/${this.storage.about.gs_id}/${this.storage.about.gs_game_id}.mid`)
             .then((res: string) => {
                 return res.split("\n").map(line => JSON.parse(line));

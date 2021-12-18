@@ -143,7 +143,7 @@ export class PlayerCards {
 
     private changeCreditStatus(spl: GamePlayer, jq: JQuery<HTMLElement>) {
         const pay = spl.credit_payRound;
-        debug(spl.user_id, spl.credit_payRound, spl.credit_nextTakeRound, this.state.storage.status.round);
+        // debug(spl.user_id, spl.credit_payRound, spl.credit_nextTakeRound, this.state.storage.status.round);
         const roundLeft = <number>(pay ? spl.credit_payRound : spl.credit_nextTakeRound) - this.state.storage.status.round;
         // debug(roundLeft)
         const status = jq.find('div');

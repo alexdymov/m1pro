@@ -35,7 +35,7 @@ export class TableAction {
                 const par = this.base.$parent;
                 // debug(par)
                 const locked = this.state.lockedFields.has(par.current_move?.field);
-                debug('actions', par.action_types, par.current_move?.field, locked);
+                // debug('actions', par.action_types, par.current_move?.field, locked);
                 
                 if (par.action_types.has('toAuction') && locked) {
                     this.perform('toAuction', par);
