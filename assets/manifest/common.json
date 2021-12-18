@@ -17,7 +17,7 @@
             "js": [
                 "script.game.js"
             ],
-            "run_at": "document_idle"
+            "run_at": "document_start"
         },
         {
             "matches": [
@@ -30,7 +30,7 @@
             "js": [
                 "script.main.js"
             ],
-            "run_at": "document_idle"
+            "run_at": "document_start"
         }
     ]
 }

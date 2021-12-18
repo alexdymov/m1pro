@@ -22,6 +22,7 @@ function createConfig(options) {
       VERSION: JSON.stringify(version)
     })
   ];
+
   const entry = './src/index.ts';
 
   let tcfg;
@@ -37,6 +38,20 @@ function createConfig(options) {
     } else {
       plugins.push(new LiveReloadPlugin({ delay: 500 }));
       metadata.require.push(`file://${dist}/${filename}`);
+      plugins.push(new WrapperPlugin({
+        test: /index\.prod\.user\.js$/,
+        header: `
+        console.log("start m1pro")
+          Object.defineProperty(window, "Vue", {
+            configurable: true,
+              set(v) {
+                console.log("m1pro got vue")
+                Object.defineProperty(window, "Vue", { configurable: true, enumerable: true, writable: true, value: v });
+                `,
+        footer: `
+              }
+            });`
+      }));
       tcfg = {
         entry: { prod: entry, dev: empty },
         output: { filename: 'index.[name].user.js', path, publicPath: '' }
@@ -64,12 +79,21 @@ function createConfig(options) {
     // to use with webpack 5+ and wrapper 2.2- do apply https://github.com/levp/wrapper-webpack-plugin/pull/16
     plugins.push(new WrapperPlugin({
       test: /\.js$/,
-      header: `var scriptCode = '(' + function() {`,
-      footer: `} + ')();';
-      var script = document.createElement('script');
-      script.textContent = scriptCode;
-      (document.head||document.documentElement).appendChild(script);
-      script.remove();`
+      header: `var scriptCode = '(' + function() {
+        Object.defineProperty(window, "Vue", {
+          configurable: true,
+            set(v) {
+              Object.defineProperty(window, "Vue", { configurable: true, enumerable: true, writable: true, value: v });
+      `,
+      footer: `
+            }
+          });
+        } + ')();';
+        var script = document.createElement('script');
+        script.textContent = scriptCode;
+        (document.head||document.documentElement).appendChild(script);
+        script.remove();
+        `
     }));
     plugins.push(new CopyPlugin({
       patterns: [{

@@ -13,5 +13,5 @@ module.exports = {
   grant: [
     'none'
   ],
-  'run-at': 'document-idle'
+  'run-at': 'document-start'
 }

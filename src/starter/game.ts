@@ -25,4 +25,5 @@ export const gameStarter = () => {
         new FieldLevelUp(v, state);
     });
     expgame(state);
+    debug('M1Pro game boot done');
 }

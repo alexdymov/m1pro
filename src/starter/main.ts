@@ -40,4 +40,5 @@ export const mainStarter = () => {
             new HeaderMenu({ $el }, state);
         }
     });
+    debug('M1Pro main boot done');
 }
