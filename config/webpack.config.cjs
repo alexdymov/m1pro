@@ -41,11 +41,9 @@ function createConfig(options) {
       plugins.push(new WrapperPlugin({
         test: /index\.prod\.user\.js$/,
         header: `
-        console.log("start m1pro")
           Object.defineProperty(window, "Vue", {
             configurable: true,
               set(v) {
-                console.log("m1pro got vue")
                 Object.defineProperty(window, "Vue", { configurable: true, enumerable: true, writable: true, value: v });
                 `,
         footer: `
