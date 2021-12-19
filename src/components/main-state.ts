@@ -2,7 +2,7 @@ import Component from 'vue-class-component';
 import { MarketListingData, MarketListingReq, MarketListingThing, MarketLotsData, MarketLotsReq, MResp, UserInfoLong, UsersGetReq, UsersData, FriendsGetReq, FriendsData, RoomsChangeSettings } from '../shared/beans';
 import Vue from 'vue';
 import { debug } from '../util/debug';
-import { propDefinedWindow } from '../util/prop-def';
+import { propWaitWindow } from '../util/prop-def';
 
 export class ModeCustomSettings {
     maxplayers?: number;
@@ -37,7 +37,7 @@ export default class MainState extends Vue {
         if (window.API && window.API.isUserSignedIn()) {
             this.loadLots();
         } else {
-            propDefinedWindow('API').then(v => this.loadLots());
+            propWaitWindow('API').then(v => this.loadLots());
         }
         setInterval(() => {
             this.loadLots();

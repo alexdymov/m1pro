@@ -18,3 +18,20 @@ export const propDefined = <T>(obj: any, name: string, timeoutms = 3000): Promis
         });
     });
 }
+
+export const propWaitWindow = <T>(name: string): Promise<T> => {
+    return propWait(window, name);
+}
+
+export const propWait = <T>(obj: any, name: string, timeoutms = 3000): Promise<T> => {
+    return new Promise((resolve, reject) => {
+        const i = setInterval(() => {
+            timeoutms && clearTimeout(timeout);
+            name in obj && (clearInterval(i), resolve(obj[name]));
+        }, 100);
+        const timeout = timeoutms && setTimeout(() => {
+            clearInterval(i);
+            reject(`no var ${name} spawned`);
+        }, timeoutms);
+    });
+}
