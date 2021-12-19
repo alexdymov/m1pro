@@ -162,6 +162,12 @@ export class ItemData {
     user_id: number;
 }
 
+export class ItemData2 {
+    item_id: number;
+    item_proto_id: number;
+    user_id: number;
+}
+
 export class UserData {
     avatar: string;
     gender: Gender;

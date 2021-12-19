@@ -25,7 +25,7 @@ export const mainStarter = () => {
     vooker.ifMount(jq => jq.is('div.HeaderUser'), v => new HeaderMenu(v, state));
     vooker.ifMount(jq => jq.is('div.VueGamesFriends'), v => new Friends(v, state));
     vooker.ifMount(jq => jq.is('div.Gchat'), v => new Chat(v));
-    vooker.ifMount(jq => jq.is('#inventory-items'), v => require('../style/main/inventory.less'));
+    vooker.ifMount((jq, v) => v.$options.name === 'inventory2', v => require('../style/main/inventory.less'));
     vooker.ifMount(jq => jq.is('div.Item'), v => new Item(v, state));
 
     const filter = new GamesFilter();

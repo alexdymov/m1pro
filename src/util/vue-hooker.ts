@@ -1,7 +1,7 @@
 import Vue, { PluginFunction, PluginObject } from 'vue';
 import { debug } from './debug';
 
-type ELPredicate = (el: JQuery<HTMLElement>) => boolean;
+type ELPredicate = (el: JQuery<HTMLElement>, v: Vue) => boolean;
 type VuePredicate = (v: Vue) => boolean;
 type Handler = (comp: Vue) => void;
 
@@ -25,7 +25,7 @@ class VueHookerPlugin implements PluginObject<any> {
                 vooker.debug && debug('mounted!', this.name, this.component_name, this.$options.name, this.$el, this);
                 if (this.$el) {
                     vooker.mountHooks.forEach((handler, predicate) => {
-                        if (predicate(jQuery(this.$el))) {
+                        if (predicate(jQuery(this.$el), this)) {
                             handler(this);
                         }
                     });

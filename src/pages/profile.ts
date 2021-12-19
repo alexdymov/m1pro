@@ -3,11 +3,12 @@ import mutator from "../util/mutator";
 import { debug } from '../util/debug';
 
 export class Profile {
-    private action = $.Deferred<InventoryData>();
+    private action: JQueryDeferred<InventoryData>;
 
     constructor() {
         require('../style/main/profile.less');
         setTimeout(() => {
+            this.action = jQuery.Deferred<InventoryData>();
             this.init();
         }, 1);
     }
@@ -36,18 +37,18 @@ export class Profile {
     private appendItem(thing: MarketLotThing, ctr: JQuery<HTMLElement>) {
         let t = thing.image;
         window.devicePixelRatio > 1 && (t = t.replace(/\.png$/, "@2x.png"));
-        $("<div>")
-            .addClass("Item _q".concat(`${thing.quality}`))
+        jQuery("<div>")
+            .addClass(`Item _quality-${thing.quality}`)
             .append(
-                $("<div>")
+                jQuery("<div>")
                     .addClass("Item-image")
                     .append(
-                        $("<div>")
+                        jQuery("<div>")
                             .addClass("_img")
                             .css("background-image", "url(".concat(t, ")"))
                     )
             )
-            .append($("<div>").addClass("Item-name").html(thing.title))
+            .append(jQuery("<div>").addClass("Item-name").html(thing.title))
             .appendTo(ctr);
     }
 

@@ -1,9 +1,14 @@
-.trades-grid {
+.TradeSide-content-items {
     grid-template-columns: repeat(auto-fill, minmax(102px, 1fr)) !important;
 }
-.trades-main-list {
+.TradesList > .col-9 {
     display: grid;
     justify-content: center;
     grid-template-columns: repeat(auto-fill, 700px);
     gap: 25px;
+}
+
+.TradesList > .col-9 .title {
+    grid-column: 1 / -1;
+    margin: 0 20px !important;
 }
