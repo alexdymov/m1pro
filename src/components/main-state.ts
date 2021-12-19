@@ -72,8 +72,8 @@ export default class MainState extends Vue {
             });
     }
 
-    getUserInfo(id: number, type?: string): JQuery.Promise<UserInfoLong[]> {
-        return $.post('/api/users.get', new UsersGetReq(type, id))
+    getUserInfo(id: number | string | [], ids: string[] = [], type?: string): JQuery.Promise<UserInfoLong[]> {
+        return $.post('/api/users.get', new UsersGetReq(type, id, ids.length ? ids.join(',') : ids))
             .then((res: UsersData) => {
                 const def = $.Deferred();
                 if (res.code || !res.data?.length) {

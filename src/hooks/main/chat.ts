@@ -1,20 +1,25 @@
 import Vue from 'vue';
 import mutator from '../../util/mutator';
 import { debug } from '../../util/debug';
+import MainState from '../../components/main-state';
+
+class IgnoredUser {
+    constructor(public id?: string, public domain?: string) { }
+}
 
 export class Chat {
-    private ignored = new Array<String>();
+    private ignored = new Array<IgnoredUser>();
     private jq: JQuery<Element>;
     private showIgnored = (localStorage.getItem('show_ignored') || '0') === '1';
 
-    constructor(public base: Vue) {
+    constructor(public base: Vue, private state: MainState) {
         this.jq = jQuery(base.$el);
         this.init();
     }
 
     private init(): void {
         require('../../style/main/chat.less');
-        this.ignored = JSON.parse(localStorage.getItem('ignored_users') || '[]');
+        const data: any[] = JSON.parse(localStorage.getItem('ignored_users') || '[]');
 
         const chat = this.jq.find('div.GchatHistory');
 
@@ -26,7 +31,8 @@ export class Chat {
                         </div>
                     </div>
                 </div>
-            `).find('input').prop('checked', this.showIgnored).on('change', (e) => {
+            `).find('input').prop('checked', this.showIgnored)
+            .on('change', (e) => {
                 this.showIgnored = e.delegateTarget.checked;
                 localStorage.setItem('show_ignored', this.showIgnored ? '1' : '0');
                 if (this.showIgnored) {
@@ -37,6 +43,25 @@ export class Chat {
             }).end()
         );
 
+        this.convert(data).then(() => this.start(chat), err => console.error('failed to get users to convert', data, err));
+    }
+
+    private convert(data: any[]): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if (data.length > 0 && typeof data[0] === 'string') {
+                this.state.getUserInfo([], data).then(users => {
+                    this.ignored = users.map(u => new IgnoredUser(`${u.user_id}`, u.domain));
+                    this.save();
+                    resolve();
+                }).fail(reject);
+            } else {
+                this.ignored = data;
+                resolve();
+            }
+        });
+    }
+
+    private start(chat: JQuery<HTMLElement>) {
         if (chat.length) {
             this.handleAllChat(chat);
             mutator.mutateAdded(chat, jq => {
@@ -65,21 +90,20 @@ export class Chat {
     }
 
     private handleChatLine(jq: JQuery<Node>) {
-        const meta = jq.find('div.GchatHistory-one-meta');
+        const meta = jq.find('div.GchatHistoryInfo');
         if (!meta.is(':has(span._ignore)')) {
             meta.prepend(jQuery('<span class="_button _ignctrl _ignore ion-minus-circled" />').on('click', () => {
-                this.ignoreUser(jq.data('userid'));
-                this.handleAllChat(jq.parent());
+                this.ignoreUser(this.getId(jq)).then(() => this.handleAllChat(jq.parent()), err => console.error('failed to get user data to ignore', jq, err));
             }));
         }
         if (!meta.is(':has(span._unignore)')) {
             meta.prepend(jQuery('<span class="_button _ignctrl _unignore ion-plus-circled" />').on('click', () => {
-                this.unignoreUser(jq.data('userid'));
+                this.unignoreUser(this.getId(jq));
                 this.handleAllChat(jq.parent());
             }));
         }
 
-        const ignored = this.isUserIgnored(jq.data('userid'));
+        const ignored = this.isUserIgnored(this.getId(jq));
         this.checkMeta(meta, ignored);
 
         if (ignored) {
@@ -90,22 +114,38 @@ export class Chat {
         }
     }
 
+    private getId(jq: JQuery<Node>): string {
+        const hrefId = new RegExp('^/profile/([^/]+)$');
+        const href = jq.find('div.GchatHistoryUser > a').attr('href');
+        return href.replace(hrefId, '$1');
+    }
+
     private checkMeta(meta: JQuery<HTMLElement>, ignored: boolean) {
         meta.find('span._ignore').css('display', !ignored ? 'unset' : 'none');
         meta.find('span._unignore').css('display', ignored ? 'unset' : 'none');
     }
 
     isUserIgnored(id: string) {
-        return this.ignored.includes(id);
+        return this.ignored.findIndex(u => u.id === id || u.domain === id) >= 0;
     }
 
     unignoreUser(id: string) {
-        delete this.ignored[this.ignored.indexOf(id)];
-        localStorage.setItem('ignored_users', JSON.stringify(this.ignored));
+        const idx = this.ignored.findIndex(u => u.id === id || u.domain === id);
+        if (idx >= 0) {
+            this.ignored.splice(idx, 1);
+            this.save();
+        }
     }
 
-    ignoreUser(id: string) {
-        this.ignored.push(id);
+    ignoreUser(id: string): Promise<void> {
+        return new Promise((resolve, reject) => this.state.getUserInfo(id).then(users => {
+            this.ignored.push(new IgnoredUser(`${users[0].user_id}`, users[0].domain));
+            this.save();
+            resolve();
+        }).fail(reject));
+    }
+
+    private save() {
         localStorage.setItem('ignored_users', JSON.stringify(this.ignored));
     }
 }

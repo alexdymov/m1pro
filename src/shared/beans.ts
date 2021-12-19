@@ -40,7 +40,7 @@ export class InventoryGetReq extends MReq {
 }
 
 export class UsersGetReq extends MReq {
-    constructor(public type: string | string[] = [], public user_id?: number | string, public user_ids: number[] | string[] = []) {
+    constructor(public type: string | string[] = [], public user_id: number | string | [] = [], public user_ids: string | string[] = []) {
         super();
     }
 }
