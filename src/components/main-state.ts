@@ -3,6 +3,7 @@ import { MarketListingData, MarketListingReq, MarketListingThing, MarketLotsData
 import Vue from 'vue';
 import { debug } from '../util/debug';
 import { propWaitWindow } from '../util/prop-def';
+import { handleResponse } from '../util/http-util';
 
 export class ModeCustomSettings {
     maxplayers?: number;
@@ -109,21 +110,8 @@ export default class MainState extends Vue {
 
     changeSetting(roomId: string, name: string, value: any, token?: string): JQuery.Promise<boolean> {
         return $.post('/api/rooms.settingsChange', new RoomsChangeSettings(roomId, name, value).withCaptcha(token))
-            .then((res: MResp<any>) => {
-                const def = $.Deferred();
-                if (res.code) {
-                    if (res.code === 8) {
-                        return window.require.async('/js/vuem/Captcha.js').then(() => {
-                            return window._libs.dialog.show({ component: "captcha", buttons: [{ is_default: true, title: "Отмена" }] })
-                                .then((tkn) => this.changeSetting(roomId, name, value, tkn));
-                        })
-                    }
-                    return def.reject(res);
-                } else {
-                    return def.resolve(true);
-                }
-            });
-
+            .then(handleResponse(() => true, tkn => this.changeSetting(roomId, name, value, tkn)))
+            .fail(e => console.error('failed to change setting', name, 'code', e));
     }
 
     setCustomSetting(mode: string, opt: string, v: any) {
