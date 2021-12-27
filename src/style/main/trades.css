@@ -1,4 +1,4 @@
-.TradeSide-content-items {
+.TradeSide-content-items, .TradesNew-inventories-one-items {
     grid-template-columns: repeat(auto-fill, minmax(102px, 1fr)) !important;
 }
 .TradesList > .col-9 {
