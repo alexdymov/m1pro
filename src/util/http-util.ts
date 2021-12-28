@@ -16,7 +16,7 @@ export const handleResponse: Handler = (resolve, callable) => {
             }
             return def.reject(res);
         } else {
-            return def.resolve(resolve);
+            return def.resolve(res.data).then(resolve);
         }
     };
 }
