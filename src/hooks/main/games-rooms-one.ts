@@ -115,7 +115,7 @@ export class GamesRoomsOne {
     }
 
     private showInvites(v: number[][], invites: JQuery<HTMLElement>) {
-        const inv = new Set(v.flat());
+        const inv = new Set(v?.flat());
         const res = new Array<JQueryPromise<UserInfoLong>>();
         inv.forEach(id => {
             res.push(computeIfAbsent(this.userDefs, id, () => this.state.getUserInfo(id).then(users => users[0])));
@@ -133,8 +133,8 @@ export class GamesRoomsOne {
     }
 
     private showBans(v: number[], bans: JQuery<HTMLElement>) {
-        v.length ? bans.show() : bans.hide();
-        if (v.length) {
+        v?.length ? bans.show() : bans.hide();
+        if (v?.length) {
             bans.text(v.length);
             const res = new Array<JQueryPromise<string>>();
             v.forEach(id => {
