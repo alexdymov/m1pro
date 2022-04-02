@@ -170,7 +170,9 @@ export class GamesRoomsOne {
                         this.fixAvatar(els.eq(idx).parent(), idx);
                         els.eq(idx).append(
                             jQuery('<div class="simple"/>').append(
-                                user.rank?.pts && jQuery('<span class="rank ion-connection-bars" />').text(user.rank?.pts),
+                                user.rank?.pts && jQuery('<div class="rank" />')
+                                    .append($('<div class="_img" />').css('background-image', `url("//m1.dogecdn.wtf/ranks/${user.rank?.id}.svg")`))
+                                    .append(`<div class="_pts">${user.rank?.pts}</div>`),
                                 user.mfp_ban_history && jQuery('<span class="mfp ion-android-sad" />').text(user.mfp_ban_history.count),
                                 user.friendship === Friendship.Active && jQuery('<span class="friends ion-ios-people" />'),
                                 jQuery('<span class="gender" />').addClass(user.gender === Gender.Male ? 'ion-male' : 'ion-female'),

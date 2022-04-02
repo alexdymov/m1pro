@@ -138,6 +138,22 @@
         top: 0;
     }
 
+    div {
+        &.rank {
+            display: flex;
+            ._img {
+                width: 20px;
+                height: 20px;
+                background: center/contain no-repeat;
+            }
+            ._pts {
+                font: 14px/24px Arvo;
+                letter-spacing: 0.4;
+                margin-left: 5px;
+            }
+        }
+    }
+
     span {
         padding: 0 3px;
         white-space: nowrap;
@@ -165,10 +181,6 @@
         }
         &:before {
             margin-right: 3px;
-        }
-        &.rank {
-            font: 14px/24px Arvo;
-            letter-spacing: 0.4;
         }
         &.friends,
         &.ion-person-stalker,
