@@ -66,7 +66,11 @@ export class GameStats {
             jQuery(el).append(
                 profit = jQuery('<div/>'),
                 laps = jQuery('<div/>')
-            ).addClass(`player_border_${pl.order}`);
+            );
+            this.state.$watch('settings.changeColor', change => {
+                jQuery(el).removeClass(`player_border_${change ? pl.orderOrig : pl.order}`)
+                    .addClass(`player_border_${change ? pl.order : pl.orderOrig}`);
+            }, { immediate: true });
             this.state.$watch(`players.${i}.laps`, v => {
                 laps.text(v);
             }, { immediate: true });
@@ -111,7 +115,18 @@ export class GameStats {
                             .find('input').prop('checked', this.state.settings.splitCommonStats).on('change', (e) => {
                                 this.state.settings.splitCommonStats = e.delegateTarget.checked;
                                 this.renderCommonStats();
-                            }).end())
+                            }).end(),
+                        jQuery(`
+                                <div class="form2-row">
+                                    <div class="form2-checkbox">
+                                        <input type="checkbox" class="switcher" id="table-opt-change-color"> <label for="table-opt-change-color">Свой цвет всегда красный</label>
+                                    </div>
+                                </div>
+                                `)
+                            .find('input').prop('checked', this.state.settings.changeColor).on('change', (e) => {
+                                this.state.settings.changeColor = e.delegateTarget.checked;
+                            }).end()
+                    )
                     break;
             }
         });

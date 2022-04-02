@@ -3,9 +3,12 @@ import Vue from 'vue';
 import { AsyncStorage, GameField, GamePlayer, Gender, Rank, UserInfoLong, BanInfo, Friendship } from '../shared/beans';
 import merge from "lodash/merge";
 import { debug } from '../util/debug';
+import cloneDeep  from "lodash/cloneDeep";
+import extend  from "lodash/extend";
 
 class GameSettings {
     splitCommonStats = true;
+    changeColor = true;
 }
 
 export class Player {
@@ -135,16 +138,18 @@ export default class GameState extends Vue {
 
     created() {
         const gameSettings = localStorage.getItem('game_settings');
-        this.settings = gameSettings ? JSON.parse(gameSettings) : new GameSettings();
-        this.$watch('settings', (v) => {
-            localStorage.setItem('game_settings', JSON.stringify(this.settings));
-        }, { deep: true });
+        const initSettings = new GameSettings();
+        this.settings = cloneDeep(initSettings);
+        gameSettings && (this.settings = extend(this.settings, JSON.parse(gameSettings)));
     }
 
     init(v: Vue) {
         this.storage = v;
         this.stor = window.API.createAsyncStorage({ is_short: false });
         this.users = this.stor.storage;
+        this.$watch('settings', (v) => {
+            localStorage.setItem('game_settings', JSON.stringify(this.settings));
+        }, { deep: true });
 
         this.$watch('users', v => {
             this.players.forEach(pl => {
@@ -166,11 +171,12 @@ export default class GameState extends Vue {
         const ref = this;
         const oldupd = v.$options.methods.update;
         const oldpp = v.$options.methods.packetProcess;
+        const settings = this.settings;
         merge(v.$options, {
             computed: {
                 player_indexes: function () {
                     return new Map(this.is_ready
-                        ? ref.players.map(pl => [pl.user_id, pl.order])
+                        ? ref.players.map(pl => [pl.user_id,  settings.changeColor ? pl.order : pl.orderOrig])
                         : []);
                 }
             },
