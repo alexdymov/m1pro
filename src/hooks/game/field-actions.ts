@@ -17,7 +17,7 @@ declare module 'vue/types/vue' {
     }
 }
 
-export class FieldLevelUp {
+export class FieldActions {
     private jq: JQuery<Element>;
 
     constructor(public base: Vue, private state: GameState) {
