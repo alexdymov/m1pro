@@ -11,6 +11,8 @@
         padding: 6px !important;
         color: white !important;
         border: none !important;
+        position: relative;
+
         &._profile {
             display: none !important;
         }
@@ -21,6 +23,17 @@
         &:after {
             content: "" !important;
             margin: 0 !important;
+        }
+        ._title {
+            display: none;
+        }
+        ._badge {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            padding: 3px !important;
+            height: 12px !important;
+            width: 12px !important;
         }
     }
 }
