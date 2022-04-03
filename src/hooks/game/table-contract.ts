@@ -12,7 +12,9 @@ declare module 'vue/types/vue' {
 
 export class TableContract {
     private jq: JQuery<Element>;
+    private btnCtr: JQuery<HTMLElement>;
     private eqBtn: JQuery<HTMLElement>;
+    private x2Btn: JQuery<HTMLElement>;
     private payhelp: JQuery<HTMLElement>;
     private diffhelp: JQuery<HTMLElement>;
     private user = window.API.user.user_id;
@@ -24,11 +26,14 @@ export class TableContract {
 
     private init() {
         require('../../style/game/table-contract.less');
+        this.btnCtr = jQuery('<div class="TableContract-content-buttons"/>').appendTo(this.jq.get(0));
         this.initEqBtn();
+        this.initX2Btn();
         this.initPaymentHelper();
         this.base.$watch('contract_ui', v => {
             if (!v) return;
             this.checkEq();
+            this.checkX2();
         }, { deep: true });
     }
 
@@ -86,9 +91,21 @@ export class TableContract {
         }
     }
 
+    private checkX2() {
+        const [left, right] = this.getSumsX2();
+        const outgoing = this.base.contract.user_id_from === this.user;
+        const team = this.state.players.find(pl => pl.user_id === this.user).team;
+        const toTeammate = this.state.party && this.state.players.find(pl => pl.user_id === this.base.contract.user_id_to).team === team;
+        if (!this.base.is_m1tv && (left * 2) !== right && outgoing && !toTeammate) {
+            this.x2Btn.show();
+        } else {
+            this.x2Btn.hide();
+        }
+    }
+
     private initEqBtn() {
-        this.eqBtn = jQuery('<div class="TableContract-content-equality"><div class="_button">= =</div></div>').hide().appendTo(this.jq.get(0))
-            .find('div._button').on('click', () => {
+        this.eqBtn = jQuery('<div class="_button">= =</div>').hide().appendTo(this.btnCtr)
+            .on('click', () => {
                 if (this.base.contract.money_from || this.base.contract.money_to) {
                     this.base.contract.money_from = this.base.contract.money_to = 0;
                 }
@@ -99,10 +116,30 @@ export class TableContract {
                 } else {
                     this.base.contract.money_from += Math.abs(diff);
                 }
-            }).end();
+            });
+    }
+
+    private initX2Btn() {
+        this.x2Btn = jQuery('<div class="_button">x2</div>').hide().appendTo(this.btnCtr)
+            .on('click', () => {
+                if (this.base.contract.money_from || this.base.contract.money_to) {
+                    this.base.contract.money_from = this.base.contract.money_to = 0;
+                }
+                const [left, right] = this.getSumsX2();
+                const diff = left - right;
+                if (diff > 0) {
+                    this.base.contract.money_to += diff;
+                } else {
+                    this.base.contract.money_from += Math.abs(diff);
+                }
+            });
     }
 
     private getSums(): number[] {
         return this.base.contract_ui.map(ui => Number(ui.sum.replace(new RegExp(/,/, 'g'), '')));
+    }
+
+    private getSumsX2(): number[] {
+        return this.base.contract_ui.map(ui => Number(ui.sum.replace(new RegExp(/,/, 'g'), '')) * 2);
     }
 }
