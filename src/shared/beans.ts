@@ -179,7 +179,7 @@ export class UserData {
 export class GameField {
     buy: number;
     coeff_rent: number;
-    fields_id: number;
+    field_id: number;
     group: number;
     image: string;
     levelUpCost: boolean | number;

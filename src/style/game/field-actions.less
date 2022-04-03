@@ -1,0 +1,89 @@
+.table-global-actions {
+    display: flex;
+    color: #fff;
+    backface-visibility: hidden;
+    gap: 2px;
+
+    >div {
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        font-size: 8pt;
+        gap: 5px;
+        padding: 0 5px;
+        min-height: 21px;
+
+        &._unmortgage {
+            background-color: #a0d468;
+        }
+        &._mortgage {
+            background-color: #ed5564;
+        }
+        &._remortgage {
+            background: linear-gradient(135deg, #a0d468 50%, #ed5564 50%);
+        }
+        
+        &._disabled {
+            background: #ccc !important;
+        }
+        &:hover {
+            cursor: pointer;
+        }
+    }
+}
+
+.table-body-board-fields-one-actions {
+    width: calc(100% - 2 * 1px);
+    height: 21px;
+    position: absolute;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    color: #fff;
+    backface-visibility: hidden;
+    gap: 2px;
+
+    .table-body-board-fields-one[mnpl-line="0"] & {
+        top: -21px;
+    }
+    .table-body-board-fields-one[mnpl-line="1"] & {
+        flex-direction: column;
+        right: -21px;
+    }
+    .table-body-board-fields-one[mnpl-line="2"] & {
+        bottom: -21px;
+    }
+    .table-body-board-fields-one[mnpl-line="3"] & {
+        flex-direction: column;
+        left: -21px;
+    }
+    .table-body-board-fields-one[mnpl-line="1"] &,
+    .table-body-board-fields-one[mnpl-line="3"] & {
+        width: 21px;
+        height: calc(100% - 2 * 1px);
+    }
+}
+.table-body-board-fields-one-action {
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 100%;
+
+    &._levelUp, &._unmortgage {
+        background-color: #a0d468;
+    }
+    &._levelDown, &._mortgage {
+        background-color: #ed5564;
+    }
+    &._remortgage {
+        background: linear-gradient(135deg, #a0d468 50%, #ed5564 50%);
+    }
+
+    &._disabled {
+        background: #ccc !important;
+    }
+    &:hover {
+        cursor: pointer;
+    }
+}

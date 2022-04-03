@@ -391,6 +391,10 @@ export default class GameState extends Vue {
         return res;
     }
 
+    getFieldUnmortgage(field: GameField) {
+        return Math.round(field.buy * this.storage.config.coeff_mortgage * this.storage.config.coeff_unmortgage);
+    }
+
     private isMe(pl: GamePlayer): boolean {
         return pl.user_id === this.user.user_id;
     }
