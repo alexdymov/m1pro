@@ -63,7 +63,7 @@ export class PlayerColors {
             this.initTokens();
         }
         this.tokens.detach();
-        this.state.players
+        [...this.state.players]
             .sort((a, b) => this.getOrderForDirection(a, !direction) - this.getOrderForDirection(b, !direction)).forEach(pl => {
                 jQuery('div.table-body-board-tokens').append(pl.token);
             });
