@@ -1,10 +1,10 @@
 import Component from "vue-class-component";
 import Vue from 'vue';
-import { AsyncStorage, GameField, GamePlayer, Gender, Rank, UserInfoLong, BanInfo, Friendship } from '../shared/beans';
+import { AsyncStorage, GameField, GamePlayer, Gender, Rank, UserInfoLong, BanInfo, Friendship, GameEvent } from '../shared/beans';
 import merge from "lodash/merge";
 import { debug } from '../util/debug';
-import cloneDeep  from "lodash/cloneDeep";
-import extend  from "lodash/extend";
+import cloneDeep from "lodash/cloneDeep";
+import extend from "lodash/extend";
 
 class GameSettings {
     splitCommonStats = true;
@@ -43,15 +43,6 @@ interface GameStatus {
     action_player: number
 }
 
-interface GameEvent {
-    type: string
-    user_id: number
-    money?: number
-    sum?: number
-    chance_id?: number
-    destinations_count?: number
-}
-
 interface UpdateAction {
     id: number
     events: Array<GameEvent>
@@ -87,6 +78,7 @@ declare module 'vue/types/vue' {
         }
         vms: {
             fields: {
+                fields_to_move: Map<number, number>
                 fields_with_equipment: Map<number, GameField>
             }
         }
@@ -112,6 +104,7 @@ declare module 'vue/types/vue' {
         packetProcess: (e: Packet, t: boolean) => void
         api_user: any
         is_ready: boolean
+        field_id_jail: number
     }
 }
 
@@ -135,6 +128,11 @@ export default class GameState extends Vue {
     lastPacket = 0;
     gameOver = false;
     settings: GameSettings = null;
+    currentDiceRoll: GameEvent = null;
+    lastBusUserId = 0;
+    currentTeleport: GameEvent = null;
+    lastReverseMoveRounds: { [key: string]: number } = {};
+    lastSkipMoveRounds: { [key: string]: number } = {};
 
     created() {
         const gameSettings = localStorage.getItem('game_settings');
@@ -176,7 +174,7 @@ export default class GameState extends Vue {
             computed: {
                 player_indexes: function () {
                     return new Map(this.is_ready
-                        ? ref.players.map(pl => [pl.user_id,  settings.changeColor ? pl.order : pl.orderOrig])
+                        ? ref.players.map(pl => [pl.user_id, settings.changeColor ? pl.order : pl.orderOrig])
                         : []);
                 }
             },
@@ -196,34 +194,71 @@ export default class GameState extends Vue {
                     ref.updates++;
                 },
                 packetProcess(e: Packet, t: boolean) {
-                    // debug('packet', e.msg.id, e.msg.status?.action_player, ref.players.find(pl => e.msg.status?.action_player === pl.user_id)?.nick, e.msg.events?.map(event => `${event.type}=${event.money}`), t);
+                    const curpl = e.msg.events[0]?.user_id;
+                    debug('packet', `#${e.msg.id}`, curpl,
+                        ref.players.find(pl => curpl === pl.user_id)?.nick,
+                        e.msg.events?.map(event => `${event.type}=${JSON.stringify(event)}`), t, JSON.parse(JSON.stringify(e)));
+                    if (!ref.storage.status) {
+                        oldpp.apply(v, arguments);
+                        return;
+                    }
                     ref.lastPacket = e.msg.id;
-                    ref.firstHandledPacket === 0 && (ref.firstHandledPacket = e.msg.id, ref.loadDemo().then(msgs => {
+                    const firstPacket = ref.firstHandledPacket === 0;
+                    firstPacket && (ref.firstHandledPacket = e.msg.id, ref.loadDemo().then(msgs => {
                         // debug('start process old packets', msgs.length);
                         msgs.some(msg => {
-                            // debug('old packet', e.msg.status.action_player, ref.players.find(pl => e.msg.status.action_player === pl.user_id)?.nick, msg.id, msg.events?.map(event => `${event.type}=${event.money}`));
+                            const oldpl = msg.events[0]?.user_id;
+                            // debug('old packet', `#${msg.id}`, oldpl,
+                            //     ref.players.find(pl => oldpl === pl.user_id)?.nick,
+                            //     msg.events?.map(event => `${event.type}=${JSON.stringify(event)}`), JSON.parse(JSON.stringify(msg)));
                             if (msg.id === ref.firstHandledPacket) {
                                 // debug('stop process old packets')
                                 return true;
                             }
-                            ref.handlePacket({ msg });
+                            ref.handlePacket({ msg }, false);
                         })
                     }));
-                    try {
-                        ref.handlePacket(e);
-                    } catch (error) {
-                        console.error('error handling packet', e, error);
-                    }
                     oldpp.apply(v, arguments);
+                    if (firstPacket) {
+                        setTimeout(() => {
+                            try {
+                                ref.handlePacket(e, true);
+                            } catch (error) {
+                                console.error('error handling packet', e, error);
+                            }
+                        }, 1);
+                    } else {
+                        try {
+                            ref.handlePacket(e, true);
+                        } catch (error) {
+                            console.error('error handling packet', e, error);
+                        }
+                    }
                 }
             }
         });
     }
 
-    private handlePacket(packet: Packet) {
+    private handlePacket(packet: Packet, current: boolean) {
+        // packet.msg.events?.find()
+        if (current) {
+            this.lastBusUserId = undefined;
+            const eventUser = packet.msg.events[0]?.user_id;
+            if (eventUser && this.lastReverseMoveRounds[eventUser] && (this.storage.status.round - this.lastReverseMoveRounds[eventUser] > 0) && eventUser !== packet.msg.status.action_player) {
+                Vue.delete(this.lastReverseMoveRounds, eventUser);
+            }
+        }
+        let diceRoll: GameEvent = null;
         packet.msg.events?.forEach(event => {
             const pl = this.players.find(pl => pl.user_id === event.user_id);
             switch (event.type) {
+                case 'busStopChoosed':
+                    current && (this.lastBusUserId = event.user_id);
+                    break;
+                case 'rollDices':
+                    diceRoll = event;
+                    current && !packet.no_events && (this.currentDiceRoll = event);
+                    break;
                 case 'gameOver':
                     this.gameOver = true;
                     break;
@@ -259,7 +294,7 @@ export default class GameState extends Vue {
                 case 'chance':
                     const chanceCard = this.storage.config.chance_cards[event.chance_id];
                     const type = chanceCard.type;
-                    // debug('chance', type)
+                    debug('chance', type, packet.msg.id)
                     switch (type) {
                         case 'cash_in':
                             pl.income += event.money ?? event.sum ?? 0;
@@ -267,10 +302,48 @@ export default class GameState extends Vue {
                         case 'birthday':
                             pl.income += this.getBirthdayMoneyFor(pl, chanceCard.sum);
                             break;
+                        case 'teleport':
+                            current && (this.currentTeleport = event);
+                            break;
+                        case 'move_skip':
+                            // debug('chance move_skip')
+                            this.isMoveSkipApplied(packet.msg.status.round, current, diceRoll) &&
+                                Vue.set(this.lastSkipMoveRounds, event.user_id, this.getCurrentRound(packet, event.user_id));
+                            // debug(JSON.parse(JSON.stringify(this.lastSkipMoveRounds)))
+                            break;
+                        case 'reverse': // ?time=738
+                            this.isMoveReverseApplied(packet.msg.status.round, current) &&
+                                Vue.set(this.lastReverseMoveRounds, event.user_id, this.getCurrentRound(packet, event.user_id));
+                            break;
                     }
                     break;
             }
         })
+    }
+
+    private getCurrentRound(packet: Packet, userId: number) {
+        const packetRound = packet.msg.status.round;
+        if (this.players.findIndex(pl => pl.user_id === userId) === this.players.length - 1 && packet.msg.status.action_player !== userId) {
+            return packetRound - 1;
+        } else {
+            return packetRound;
+        }
+    }
+
+    private isMoveReverseApplied(packetRound: number, current: boolean) {
+        const res = (current || (this.storage.status.round - packetRound) < 2);
+        debug(`isMoveReverseApplied===${res}`, current, this.storage.status.round - packetRound);
+        return res;
+    }
+
+    private isMoveSkipApplied(packetRound: number, current: boolean, diceRoll: GameEvent) {
+        const dices = diceRoll?.dices;
+        const diceRollTriple = (dices?.length === 3 && dices[0] < 4 && dices[0] === dices[1] && dices[0] === dices[2]);
+        const diceRollDouble = (dices?.length === 2 && dices[0] === dices[1]) ||
+            (dices?.length === 3 && dices[0] === dices[1] && !diceRollTriple);
+        const res = (current || (this.storage.status.round - packetRound) < 2) && !diceRollDouble;
+        debug(`isMoveSkipApplied===${res}`, current, this.storage.status.round - packetRound, diceRollDouble, diceRollTriple);
+        return res;
     }
 
     public loadDemo(): JQueryPromise<Array<UpdateAction>> {
@@ -297,6 +370,30 @@ export default class GameState extends Vue {
         this.party = this.storage.flags.game_2x2;
         this.loadPlayers();
         this.stor.load(this.players.map(pl => pl.user_id));
+        this.$watch('storage.status.round', r => {
+            if (Object.keys(this.lastSkipMoveRounds).length !== 0) {
+                Object.keys(this.lastSkipMoveRounds).forEach(user => {
+                    if (r - this.lastSkipMoveRounds[user] > 1) {
+                        debug('delete skip', user, r, this.lastSkipMoveRounds[user])
+                        Vue.delete(this.lastSkipMoveRounds, user);
+                    }
+                })
+            }
+        });
+        this.$watch('lastSkipMoveRounds', _ => {
+            debug('lastSkipMoveRounds', JSON.parse(JSON.stringify(this.lastSkipMoveRounds)));
+            jQuery(this.players.map(pl => pl.token)).find('div._skip').hide();
+            Object.keys(this.lastSkipMoveRounds).forEach(user => {
+                jQuery(this.players.find(pl => pl.user_id === Number(user)).token).find('div._skip').show();
+            });
+        }, { deep: true });
+        this.$watch('lastReverseMoveRounds', _ => {
+            debug('lastReverseMoveRounds', JSON.parse(JSON.stringify(this.lastReverseMoveRounds)));
+            jQuery(this.players.map(pl => pl.token)).find('div._back').hide();
+            Object.keys(this.lastReverseMoveRounds).forEach(user => {
+                jQuery(this.players.find(pl => pl.user_id === Number(user)).token).find('div._back').show();
+            });
+        });
         this.loaded = true;
     }
 

@@ -1,4 +1,4 @@
-import { FieldActions, GameStats, PlayerCardMenu, PlayerCards, PlayerColors, TableContract } from '../hooks/game';
+import { FieldActions, GameStats, PlayerCardMenu, PlayerCards, PlayerColors, ShowFieldMove, TableContract } from '../hooks/game';
 import vooker from '../util/vue-hooker';
 import Vue from 'vue';
 import { debug } from '../util/debug';
@@ -23,6 +23,7 @@ export const gameStarter = () => {
         new PlayerCards(state);
         new PlayerCardMenu(state);
         new FieldActions(v, state);
+        new ShowFieldMove(v, state);
     });
     expgame(state);
     debug('M1Pro game boot done');

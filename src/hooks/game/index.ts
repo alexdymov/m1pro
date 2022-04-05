@@ -4,5 +4,6 @@ import { PlayerCardMenu } from './player-card-menu';
 import { GameStats } from './game-stats';
 import { FieldActions } from './field-actions';
 import { TableContract } from './table-contract';
+import { ShowFieldMove } from './show-field-move';
 
-export { PlayerColors, PlayerCards, PlayerCardMenu, GameStats, FieldActions, TableContract }
+export { PlayerColors, PlayerCards, PlayerCardMenu, GameStats, FieldActions, TableContract, ShowFieldMove }

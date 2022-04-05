@@ -285,3 +285,14 @@ export interface AsyncStorage {
     storage: { [key: number]: UserInfoLong };
     load(ids: Array<number>): any;
 }
+
+export interface GameEvent {
+    type: string
+    user_id: number
+    money?: number
+    sum?: number
+    chance_id?: number
+    destinations_count?: number
+    dices: Array<number>
+    mean_position: number
+}
