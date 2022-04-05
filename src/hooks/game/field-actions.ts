@@ -39,7 +39,7 @@ export class FieldActions {
 
             const levelupBtn = jQuery('<div class="table-body-board-fields-one-action _levelUp"><div class="ion-plus"/></div>').hide()
                 .on('click', this.actionCallHandler('levelUp', this.getField(id)))
-                .on('check', () => { this.checkLevelUpBtn(levelupBtn, field) });
+                .on('check', () => { this.checkLevelUpBtn(levelupBtn, this.getField(id)) });
             const levelDownBtn = jQuery('<div class="table-body-board-fields-one-action _levelDown"><div class="ion-minus"/></div>').hide()
                 .on('click', this.actionCallHandler('levelDown', this.getField(id)))
                 .on('check', () => { this.checkLevelDownBtn(levelDownBtn, this.getField(id)) });
