@@ -78,7 +78,7 @@ export class ShowFieldMove {
                 debug('pos', pos)
                 debug('fields', fields);
                 debug('vacant', firstVacant?.field_id);
-                if (v.mean_position === this.state.storage.field_id_jail) {
+                if (v.mean_position === 30) {
                     return [v.mean_position];
                 }
                 if (vacantFields.length === 1 && vacantFields[0].field_id === v.mean_position) {
