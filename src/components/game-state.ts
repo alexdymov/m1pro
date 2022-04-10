@@ -454,7 +454,7 @@ export default class GameState extends Vue {
                     Vue.set(this.lastReverseMoveRounds, Object.keys(this.pendingLastReverseMoveRounds)[0], Object.values(this.pendingLastReverseMoveRounds)[0]);
                     this.pendingLastReverseMoveRounds = {};
                 }
-                debug('pend pool', this.pendingChancesToRemove)
+                debug('pend pool', JSON.parse(JSON.stringify(this.pendingChancesToRemove)))
                 if (this.pendingChancesToRemove.length) {
                     this.pendingChancesToRemove.forEach(v => this.chancePool.splice(v, 1));
                     if (this.chancePool.length === 0) {
