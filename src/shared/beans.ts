@@ -295,4 +295,20 @@ export interface GameEvent {
     destinations_count?: number
     dices: Array<number>
     mean_position: number
+    move_reverse?: number
+}
+
+export interface ChanceCard {
+    range?: Array<number>
+    rangeStep?: number
+    sum?: number
+    text: string
+    type: string
+}
+
+export class CurrentChanceCard {
+    constructor(public fieldId: number,
+        public card: ChanceCard,
+        public sum?: number) {
+    }
 }

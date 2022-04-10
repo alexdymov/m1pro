@@ -2,6 +2,7 @@ import merge from 'lodash/merge';
 import Vue from 'vue';
 import GameState from '../../components/game-state';
 import { debug } from '../../util/debug';
+import ChanceItems from '../../components/chance-items';
 
 class Ticker {
     game_time: string
@@ -20,9 +21,11 @@ export class GameStats {
     private rootOrig: JQuery<HTMLElement>;
     private root: JQuery<HTMLElement>;
     private stats: JQuery<HTMLElement>;
+    private pool: JQuery<HTMLElement>;
     private content: JQuery<HTMLElement>;
     private title: JQuery<HTMLElement>;
     private allRenderedSeparately = false;
+    private chanceItems: ChanceItems;
 
     constructor(public base: Vue, private state: GameState) {
         this.jq = jQuery(base.$el);
@@ -48,6 +51,7 @@ export class GameStats {
 
         this.root = jQuery('<div class="table-body-stats"/>').appendTo('div.table-body');
         this.stats = jQuery('<div class="TableHelper-content"/>').appendTo(this.root);
+        this.pool = jQuery('<div class="TablePool-content"><div class="pool-title"><div class="ion-help" />Поле шанс</div></div>').appendTo(this.root).hide();
         this.loadCommonStatsElements();
         this.initExtraStatsTable();
         this.observeTabSwitch();
@@ -55,6 +59,15 @@ export class GameStats {
             this.renderCommonStats();
         };
         this.state.$watch('gameOver', v => v && this.root.hide() && debug('gameover'));
+
+        debug('wait stats pool')
+        this.state.$watch('chancePool', v => {
+            debug('stats pool', JSON.parse(JSON.stringify(v)))
+            if (!this.chanceItems && v) {
+                this.chanceItems = new ChanceItems({ propsData: { chanceCards: v, chanceCardsInit: this.state.storage.config.chance_cards, players: () => this.state.storage.status.players } });
+                this.pool.append(this.chanceItems.$mount().$el).show();
+            }
+        }, { immediate: true });
     }
 
     private initExtraStatsTable() {

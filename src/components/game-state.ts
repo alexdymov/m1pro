@@ -1,10 +1,11 @@
 import Component from "vue-class-component";
 import Vue from 'vue';
-import { AsyncStorage, GameField, GamePlayer, Gender, Rank, UserInfoLong, BanInfo, Friendship, GameEvent } from '../shared/beans';
+import { AsyncStorage, GameField, GamePlayer, Gender, Rank, UserInfoLong, BanInfo, Friendship, GameEvent, ChanceCard, CurrentChanceCard } from '../shared/beans';
 import merge from "lodash/merge";
 import { debug } from '../util/debug';
 import cloneDeep from "lodash/cloneDeep";
 import extend from "lodash/extend";
+import isEqual from "lodash/isEqual";
 
 class GameSettings {
     splitCommonStats = true;
@@ -54,14 +55,6 @@ interface Packet {
     msg: UpdateAction
     no_events?: boolean
     no_status?: boolean
-}
-
-interface ChanceCard {
-    range?: Array<number>
-    rangeStep?: number
-    sum?: number
-    text: string
-    type: string
 }
 
 const WORMHOLE_DEFAULT_FREE_DESTINATIONS = 3;
@@ -129,10 +122,20 @@ export default class GameState extends Vue {
     gameOver = false;
     settings: GameSettings = null;
     currentDiceRoll: GameEvent = null;
+    currentBusChoosen: GameEvent = null;
     lastBusUserId = 0;
-    currentTeleport: GameEvent = null;
+    currentTeleports = new Array<GameEvent>();
+    pendingLastReverseMoveRounds: { [key: string]: number } = {};
+    pendingLastSkipMoveRounds: { [key: string]: number } = {};
     lastReverseMoveRounds: { [key: string]: number } = {};
     lastSkipMoveRounds: { [key: string]: number } = {};
+    chancePoolInit = false;
+    chancePool = new Array<ChanceCard>();
+    oldChancePool: Array<ChanceCard> = null;
+    pendingChancePool = new Array<ChanceCard>();
+    pendingChanceToRemove = -1;
+    currentChanceCards = new Array<CurrentChanceCard>();
+    comboJails = 0;
 
     created() {
         const gameSettings = localStorage.getItem('game_settings');
@@ -204,20 +207,31 @@ export default class GameState extends Vue {
                     }
                     ref.lastPacket = e.msg.id;
                     const firstPacket = ref.firstHandledPacket === 0;
-                    firstPacket && (ref.firstHandledPacket = e.msg.id, ref.loadDemo().then(msgs => {
-                        // debug('start process old packets', msgs.length);
-                        msgs.some(msg => {
-                            const oldpl = msg.events[0]?.user_id;
-                            // debug('old packet', `#${msg.id}`, oldpl,
-                            //     ref.players.find(pl => oldpl === pl.user_id)?.nick,
-                            //     msg.events?.map(event => `${event.type}=${JSON.stringify(event)}`), JSON.parse(JSON.stringify(msg)));
-                            if (msg.id === ref.firstHandledPacket) {
-                                // debug('stop process old packets')
-                                return true;
-                            }
-                            ref.handlePacket({ msg }, false);
-                        })
-                    }));
+                    if (firstPacket) {
+                        ref.firstHandledPacket = e.msg.id;
+                        ref.oldChancePool = ref.storage.config.chance_cards && [...ref.storage.config.chance_cards];
+                        ref.loadDemo().then(msgs => {
+                            debug('start process old packets', msgs.length, 'until', ref.firstHandledPacket);
+                            msgs.some(msg => {
+                                // const oldpl = msg.events[0]?.user_id;
+                                // debug('old packet', `#${msg.id}`, oldpl,
+                                //     ref.players.find(pl => oldpl === pl.user_id)?.nick,
+                                //     msg.events?.map(event => `${event.type}=${JSON.stringify(event)}`), JSON.parse(JSON.stringify(msg)));
+                                if (msg.id === ref.firstHandledPacket) {
+                                    debug('stop process old packets')
+                                    const pool = [...ref.oldChancePool];
+                                    ref.pendingChancePool.forEach(pc => {
+                                        const idx = pool.findIndex(c => isEqual(c, pc));
+                                        pool.splice(idx, 1);
+                                    });
+                                    pool.forEach(card => ref.chancePool.push(card));
+                                    ref.chancePoolInit = true;
+                                    return true;
+                                }
+                                ref.handlePacket({ msg }, false);
+                            })
+                        });
+                    }
                     oldpp.apply(v, arguments);
                     if (firstPacket) {
                         setTimeout(() => {
@@ -242,25 +256,29 @@ export default class GameState extends Vue {
     private handlePacket(packet: Packet, current: boolean) {
         // packet.msg.events?.find()
         if (current) {
-            this.lastBusUserId = undefined;
-            const eventUser = packet.msg.events[0]?.user_id;
-            if (eventUser && this.lastReverseMoveRounds[eventUser] && (this.storage.status.round - this.lastReverseMoveRounds[eventUser] > 0) && eventUser !== packet.msg.status.action_player) {
-                Vue.delete(this.lastReverseMoveRounds, eventUser);
-            }
+            this.clearLastBus();
+            this.clearLastReverse(packet);
         }
         let diceRoll: GameEvent = null;
+        let busChoosen: GameEvent = null;
+        let teleport: GameEvent = null;
         packet.msg.events?.forEach(event => {
             const pl = this.players.find(pl => pl.user_id === event.user_id);
             switch (event.type) {
                 case 'busStopChoosed':
-                    current && (this.lastBusUserId = event.user_id);
+                    busChoosen = event;
+                    current && (this.lastBusUserId = event.user_id) && (this.currentBusChoosen = event);
                     break;
                 case 'rollDices':
                     diceRoll = event;
                     current && !packet.no_events && (this.currentDiceRoll = event);
+                    // !packet.no_events && isdo
                     break;
                 case 'gameOver':
                     this.gameOver = true;
+                    break;
+                case 'goToJailByCombo':
+                    this.comboJails++;
                     break;
 
                 case 'startBypass':
@@ -293,6 +311,25 @@ export default class GameState extends Vue {
 
                 case 'chance':
                     const chanceCard = this.storage.config.chance_cards[event.chance_id];
+
+                    if (current) {
+                        this.currentChanceCards.push(new CurrentChanceCard(teleport ? teleport.mean_position : (diceRoll || busChoosen).mean_position, chanceCard, event.money ?? event.sum));
+                        if (chanceCard.type === 'teleport') {
+                            teleport = event;
+                        }
+                        if (this.chancePoolInit) {
+                            this.pendingChanceToRemove = this.chancePool.findIndex(oc => isEqual(oc, chanceCard));
+                        } else {
+                            this.pendingChancePool.push(chanceCard);
+                        }
+                    } else {
+                        const idx = this.oldChancePool.findIndex(oc => isEqual(oc, chanceCard));
+                        this.oldChancePool.splice(idx, 1);
+                        if (this.oldChancePool.length === 0) {
+                            this.oldChancePool = [...this.storage.config.chance_cards];
+                        }
+                    }
+
                     const type = chanceCard.type;
                     debug('chance', type, packet.msg.id)
                     switch (type) {
@@ -303,22 +340,34 @@ export default class GameState extends Vue {
                             pl.income += this.getBirthdayMoneyFor(pl, chanceCard.sum);
                             break;
                         case 'teleport':
-                            current && (this.currentTeleport = event);
+                            current && (this.currentTeleports.push(event));
                             break;
                         case 'move_skip':
                             // debug('chance move_skip')
                             this.isMoveSkipApplied(packet.msg.status.round, current, diceRoll) &&
-                                Vue.set(this.lastSkipMoveRounds, event.user_id, this.getCurrentRound(packet, event.user_id));
+                                (this.pendingLastSkipMoveRounds[event.user_id] = this.getCurrentRound(packet, event.user_id));
                             // debug(JSON.parse(JSON.stringify(this.lastSkipMoveRounds)))
                             break;
-                        case 'reverse': // ?time=738
+                        case 'reverse':
                             this.isMoveReverseApplied(packet.msg.status.round, current) &&
-                                Vue.set(this.lastReverseMoveRounds, event.user_id, this.getCurrentRound(packet, event.user_id));
+                                (this.pendingLastReverseMoveRounds[event.user_id] = this.getCurrentRound(packet, event.user_id));
                             break;
                     }
                     break;
             }
         })
+    }
+
+    private clearLastReverse(packet: Packet) {
+        const eventUser = packet.msg.events[0]?.user_id;
+        if (eventUser && this.lastReverseMoveRounds[eventUser] && (this.storage.status.round - this.lastReverseMoveRounds[eventUser] > 1) && eventUser !== packet.msg.status.action_player) {
+            debug('clear reverse on move', eventUser, this.lastReverseMoveRounds[eventUser]);
+            Vue.delete(this.lastReverseMoveRounds, eventUser);
+        }
+    }
+
+    private clearLastBus() {
+        this.lastBusUserId = undefined;
     }
 
     private getCurrentRound(packet: Packet, userId: number) {
@@ -393,6 +442,31 @@ export default class GameState extends Vue {
             Object.keys(this.lastReverseMoveRounds).forEach(user => {
                 jQuery(this.players.find(pl => pl.user_id === Number(user)).token).find('div._back').show();
             });
+        });
+        this.$watch('storage.is_events_processing', p => {
+            if (!p) {
+                if (Object.keys(this.pendingLastSkipMoveRounds).length) {
+                    Vue.set(this.lastSkipMoveRounds, Object.keys(this.pendingLastSkipMoveRounds)[0], Object.values(this.pendingLastSkipMoveRounds)[0]);
+                    this.pendingLastSkipMoveRounds = {};
+                }
+                if (Object.keys(this.pendingLastReverseMoveRounds).length) {
+                    Vue.set(this.lastReverseMoveRounds, Object.keys(this.pendingLastReverseMoveRounds)[0], Object.values(this.pendingLastReverseMoveRounds)[0]);
+                    this.pendingLastReverseMoveRounds = {};
+                }
+                debug('pend pool', this.pendingChanceToRemove)
+                if (this.pendingChanceToRemove !== -1) {
+                    this.chancePool.splice(this.pendingChanceToRemove, 1);
+                    if (this.chancePool.length === 0) {
+                        this.storage.config.chance_cards.forEach(card => this.chancePool.push(card));
+                    }
+                    this.pendingChanceToRemove = -1;
+                }
+                const currAction = this.currentDiceRoll || this.currentBusChoosen;
+                if (currAction.move_reverse && this.lastReverseMoveRounds[currAction.user_id]) {
+                    debug('clear reverse on the move', currAction.user_id, this.lastReverseMoveRounds[currAction.user_id]);
+                    Vue.delete(this.lastReverseMoveRounds, currAction.user_id);
+                }
+            }
         });
         this.loaded = true;
     }

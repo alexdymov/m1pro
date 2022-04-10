@@ -34,6 +34,93 @@
             flex-flow: column nowrap !important;
         }
     }
+
+    .TablePool-content {
+        width: 175px;
+        height: 250px;
+        background-color: #161a1b;
+        white-space: nowrap;
+        padding: 10px;
+        margin-top: 195px;
+
+        .pool-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+
+            >div {
+                color: white;
+                background-color: #8cc152;
+                border-radius: 100%;
+                font-size: 16px;
+                margin-right: 6px;
+                width: 22px;
+                height: 22px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
+        .pool-items {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            row-gap: 6px;
+            padding-top: 10px;
+
+            .disabled {
+                color: #ccc !important;
+            }
+
+            .pool-item {
+                display: flex;
+                align-items: center;
+                gap: 2px;
+                justify-content: center;
+                // padding: 15px;
+                font-size: 26px;
+                >span {
+                    margin-left: 5px;
+                }
+                >div {
+                    min-width: 26px;
+                    text-align: center;
+                    &.profit_neg {
+                        color: #cd3747;
+                    }
+                    &.profit_pos {
+                        color: #8cc152;
+                    }
+                }
+            }
+            .pool-multi {
+                grid-row: 1;
+                flex-direction: column;
+                padding: 5px !important;
+                align-self: flex-start;
+            }
+            .pool-sub {
+                font-size: 8px;
+            }
+            .pool-jail {
+                background-image: url("https://m1.dogecdn.wtf/fields/special/goToJail.png");
+                background-size: 37px;
+                background-position: center;
+                background-repeat: no-repeat;
+                width: 26px;
+                height: 26px;
+            }
+            .pool-teleport {
+                background-image: url("https://m1.dogecdn.wtf/fields/special/wormhole.svg");
+                background-size: 19px;
+                background-position: center;
+                background-repeat: no-repeat;
+                width: 26px;
+                height: 26px;
+            }
+        }
+    }
 }
 .TableHelper {
     width: 470px !important;

@@ -1,0 +1,120 @@
+.table-body-board-fields-one-wrap {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: .6s;
+    [mnpl-line="0"] &, [mnpl-line="2"] & {
+        transform: rotateY(180deg);
+    }
+    [mnpl-line="1"] &, [mnpl-line="3"] & {
+        transform: rotateX(180deg);
+    }
+
+    &.active {
+        [mnpl-line="0"] &, [mnpl-line="2"] & {
+            transform: rotateY(0deg);
+        }
+        [mnpl-line="1"] &,[mnpl-line="3"] & {
+            transform: rotateX(0deg);
+        }
+    }
+
+    .table-body-board-fields-one-body {
+        z-index: 1;
+        position: absolute;
+        top: 0;
+        left: 0;
+        backface-visibility: hidden;
+
+        [mnpl-line="0"] &, [mnpl-line="2"] & {
+            transform: rotateY(180deg);
+        }
+        [mnpl-line="1"] &, [mnpl-line="3"] & {
+            transform: rotateX(180deg);
+        }
+    }
+
+    .table-body-board-fields-one-back {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+
+        [mnpl-line="0"] &, [mnpl-line="2"] & {
+            transform: rotateY(0deg);
+        }
+        [mnpl-line="1"] &, [mnpl-line="3"] & {
+            transform: rotateX(0deg);
+        }
+
+        >span {
+            font-size: 40px;
+            background: #fff;
+            color: #000;
+            display: flex;
+            align-items: center;
+            &.profit_neg {
+                color: #cd3747;
+            }
+            &.profit_pos {
+                color: #8cc152;
+            }
+        }
+
+        >div {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            color: #000;
+            width: 100%;
+            height: 100%;
+            font-size: 24px;
+        }
+
+        ._text {
+            font-size: 24px;
+            &::before {
+                margin-right: 5px;
+            }
+            [mnpl-line="0"] &, [mnpl-line="2"] & {
+                transform: rotate(270deg);
+            }
+        }
+
+        ._logo {
+            background: center/contain no-repeat;
+            width: 80%;
+            height: 70%;
+
+            [mnpl-line="1"] &, [mnpl-line="3"] & {
+                height: 78.4px;
+                width: 37.099999999999994px;
+            }
+            [mnpl-line="1"] & {
+                transform: rotate(90deg);
+            }
+            [mnpl-line="3"] & {
+                transform: rotate(270deg);
+            }
+
+            &.teleport {
+                background-image: url("https://m1.dogecdn.wtf/fields/special/wormhole.svg");
+            }
+            &.jail {
+                background-image: url("https://m1.dogecdn.wtf/fields/special/goToJail.png");
+                background-size: 100px;
+            }
+        }
+    }
+}

@@ -28,13 +28,21 @@ export class ShowFieldMove {
                 }
             });
 
-            this.state.$watch('currentTeleport', (v: GameEvent) => {
-                debug('currentTeleport', v && JSON.parse(JSON.stringify(v)));
-                if (v) {
+            this.state.$watch('currentTeleports', (v: Array<GameEvent>) => {
+                debug('currentTeleports', JSON.parse(JSON.stringify(v)));
+                if (v.length) {
                     this.fjqs.first().parent().addClass('_mode_choose_field');
-                    this.fjqs.eq(v.mean_position).addClass('_mode_choose_field_available');
+                    v.forEach(ev => this.fjqs.eq(ev.mean_position).addClass('_mode_choose_field_available'));
+                    v.splice(0, v.length);
                     this.pending = true;
                 }
+            });
+
+            state.$watch('comboJails', v => {
+                this.fjqs.removeClass('_mode_choose_field_available');
+                this.fjqs.parent().removeClass('_mode_choose_field');
+                this.pending = false;
+                this.pendingBus = false;
             });
 
             state.$watch('storage.is_events_processing', p => {
@@ -53,46 +61,66 @@ export class ShowFieldMove {
     }
 
     private getPositions(v: GameEvent) {
-        const reverse = this.state.lastReverseMoveRounds[v.user_id];
-        if (v.dices.length == 2) {
+        const reverse = (this.state.currentDiceRoll || this.state.currentBusChoosen).move_reverse;
+        const dices = v.dices;
+        if (dices.length == 2) {
             return [v.mean_position];
-        } else if (v.dices.length > 2 && !(v.dices[0] < 4 && v.dices[0] === v.dices[1] && v.dices[0] === v.dices[2])) {
-            const last = v.dices[2];
-            const pos = this.state.storage.status.players.find(pl => pl.user_id === v.user_id).position;
+        } else if (dices.length > 2 && !this.isTrippleDiceRoll(dices)) {
+            const last = dices[2];
+            const currPos = this.state.storage.status.players.find(pl => pl.user_id === v.user_id).position;
             if (last === 4 || last === 6) {
-                if (v.user_id === this.state.user.user_id && !this.state.storage.about.is_m1tv) {
-                    return [];
-                }
-                this.pendingBus = true;
-                if (reverse) {
-                    return [(pos - v.dices[0]) % 40, (pos - v.dices[1]) % 40, (pos - v.dices[0] - v.dices[1]) % 40];
-                } else {
-                    return [(pos + v.dices[0]) % 40, (pos + v.dices[1]) % 40, (pos + v.dices[0] + v.dices[1]) % 40];
-                }
+                return this.getBusPositions(currPos, dices, reverse, v.user_id);
             } else if (last === 5) {
-                let fields = [...this.state.storage.vms.fields.fields_with_equipment.values()];
-                fields = [...fields.filter(f => f.field_id > v.mean_position), ...fields.filter(f => v.mean_position > f.field_id)];
-                reverse && (fields = fields.reverse());
-                const vacantFields = fields.filter(f => !f.owner_true);
-                const firstVacant = vacantFields.length > 0 && vacantFields[0];
-                debug('pos', pos)
-                debug('fields', fields);
-                debug('vacant', firstVacant?.field_id);
-                if (v.mean_position === 30) {
-                    return [v.mean_position];
-                }
-                if (vacantFields.length === 1 && vacantFields[0].field_id === v.mean_position) {
-                    return [v.mean_position];
-                }
-                if (firstVacant) {
-                    return [v.mean_position, firstVacant.field_id];
-                } else {
-                    return [v.mean_position, fields.find(f => f.owner_true !== v.user_id && f.mortgaged !== true).field_id];
-                }
+                return this.getM1Positions(currPos, v.mean_position, reverse, v.user_id);
             } else {
                 return [v.mean_position];
             }
         }
         return [];
+    }
+
+    private getM1Positions(currPos: number, meanPos: number, reverse: number, user: number) {
+        const telePos = this.state.currentTeleports.length && this.state.currentTeleports[this.state.currentTeleports.length - 1].mean_position;
+        const startSearchPos = telePos || meanPos;
+        const fields = this.getDirectionFields(startSearchPos, reverse);
+        const vacantFields = fields.filter(f => !f.owner_true);
+        const firstVacant = vacantFields.length > 0 && vacantFields[0];
+        debug('pos', currPos)
+        debug('fields', fields);
+        debug('vacant', firstVacant?.field_id);
+        if (meanPos === 30) {
+            return [meanPos];
+        }
+        if (vacantFields.length === 1 && vacantFields[0].field_id === meanPos) {
+            return [meanPos];
+        }
+        if (firstVacant) {
+            return [meanPos, firstVacant.field_id];
+        } else {
+            return [meanPos, fields.find(f => f.owner_true !== user && f.mortgaged !== true).field_id];
+        }
+    }
+
+    private getDirectionFields(fromPos: number, reverse: number) {
+        let fields = [...this.state.storage.vms.fields.fields_with_equipment.values()];
+        fields = [...fields.filter(f => f.field_id > fromPos), ...fields.filter(f => fromPos > f.field_id)];
+        reverse && (fields = fields.reverse());
+        return fields;
+    }
+
+    private getBusPositions(currPos: number, dices: number[], reverse: number, user: number) {
+        if (user === this.state.user.user_id && !this.state.storage.about.is_m1tv) {
+            return [];
+        }
+        this.pendingBus = true;
+        if (reverse) {
+            return [(currPos - dices[0]) % 40, (currPos - dices[1]) % 40, (currPos - dices[0] - dices[1]) % 40];
+        } else {
+            return [(currPos + dices[0]) % 40, (currPos + dices[1]) % 40, (currPos + dices[0] + dices[1]) % 40];
+        }
+    }
+
+    private isTrippleDiceRoll(dices: number[]) {
+        return dices[0] < 4 && dices[0] === dices[1] && dices[0] === dices[2];
     }
 }
