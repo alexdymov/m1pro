@@ -6,5 +6,7 @@ import { FieldActions } from './field-actions';
 import { TableContract } from './table-contract';
 import { ShowFieldMove } from './show-field-move';
 import { ShowChanceCard } from './show-chance-card';
+import { LockableFields } from './lockable-fields';
+import { TableAction } from './table-action';
 
-export { PlayerColors, PlayerCards, PlayerCardMenu, GameStats, FieldActions, TableContract, ShowFieldMove, ShowChanceCard }
+export { PlayerColors, PlayerCards, PlayerCardMenu, GameStats, FieldActions, TableContract, ShowFieldMove, ShowChanceCard, LockableFields, TableAction }

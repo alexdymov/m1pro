@@ -1,4 +1,4 @@
-import { FieldActions, GameStats, PlayerCardMenu, PlayerCards, PlayerColors, ShowFieldMove, TableContract, ShowChanceCard } from '../hooks/game';
+import { FieldActions, GameStats, PlayerCardMenu, PlayerCards, PlayerColors, ShowFieldMove, TableContract, ShowChanceCard, TableAction, LockableFields } from '../hooks/game';
 import vooker from '../util/vue-hooker';
 import Vue from 'vue';
 import { debug } from '../util/debug';
@@ -15,7 +15,7 @@ export const gameStarter = () => {
     require('../style/game/remove-k.css');
     vooker.ifBeforeCreate(v => v.$options.name === 'storage', v => state.init(v));
     vooker.ifMount(jq => jq.is('div.TableContract'), v => new TableContract(v, state));
-    vooker.ifMount(jq => jq.is('div.TableAction'), v => require('../style/game/table-action.less'));
+    vooker.ifMount(jq => jq.is('div.TableAction'), v => new TableAction(v, state));
     vooker.ifBeforeCreate(v => v.$options.name === 'table-helper', v => GameStats.fixTicker(v));
     vooker.ifMount(jq => jq.is('div.TableHelper'), v => new GameStats(v, state));
     vooker.ifMount(jq => jq.is('#ui-fields'), v => {
@@ -25,6 +25,7 @@ export const gameStarter = () => {
         new FieldActions(v, state);
         new ShowFieldMove(v, state);
         new ShowChanceCard(v, state);
+        new LockableFields(state);
     });
     expgame(state);
     debug('M1Pro game boot done');

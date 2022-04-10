@@ -20,7 +20,7 @@ export const mainStarter = () => {
     pooker.add(page => page.pathname.startsWith('/games'), () => new Adaptive());
 
     const cb = new CollapseBlock();
-    vooker.ifMount(jq => jq.is('div.GamesMissions, div.VueGamesTopweek, div.VueGamesFriends, div.Gchat'), v => (cb.add(v)));
+    vooker.ifMount(jq => jq.is('div.VueGamesSeasonpass, div.GamesMissions, div.VueGamesTopweek, div.VueGamesFriends, div.Gchat'), v => (cb.add(v)));
 
     vooker.ifMount(jq => jq.is('div.HeaderUser'), v => new HeaderMenu(v, state));
     vooker.ifMount(jq => jq.is('div.VueGamesFriends'), v => new Friends(v, state));
