@@ -3,6 +3,7 @@ import { MarketLotThing, UserInfoLong, UserData, SocketData, SocketEvent, BanInf
 declare global {
     interface Window {
         onReadyToUse: (fn: any) => void
+        tableResize: (v: boolean) => void
         require: {
             async: (src: string) => Promise<any>
         }

@@ -26,6 +26,7 @@ export class GameStats {
     private title: JQuery<HTMLElement>;
     private allRenderedSeparately = false;
     private chanceItems: ChanceItems;
+    private initialWidth = 0;
 
     constructor(public base: Vue, private state: GameState) {
         this.jq = jQuery(base.$el);
@@ -99,6 +100,7 @@ export class GameStats {
 
     private loadCommonStatsElements() {
         this.allRenderedSeparately = false;
+        this.initialWidth = jQuery('div._shakehack').width();
         this.rootOrig = this.jq.find('div.TableHelper-content > div');
         this.content = this.rootOrig.find('div.TableHelper-content-stat');
         this.title = this.rootOrig.find('div._matchtitle');
@@ -146,16 +148,14 @@ export class GameStats {
     }
 
     private renderCommonStats() {
-        const renderSeparately = this.isEnoughWidth() && this.state.settings.splitCommonStats;
+        const renderSeparately = /* this.isEnoughWidth() &&  */this.state.settings.splitCommonStats;
         const ctr = renderSeparately ? this.stats : this.rootOrig;
         const rerender = renderSeparately !== this.allRenderedSeparately;
         renderSeparately && !this.state.gameOver && this.root.show() || this.root.hide();
         rerender && this.content.detach().prependTo(ctr);
         this.title.length && rerender && this.title.detach().prependTo(ctr);
         this.title.length && (this.allRenderedSeparately = renderSeparately);
-    }
-
-    private isEnoughWidth() {
-        return window.matchMedia('(min-aspect-ratio: 85/50)').matches;
+        jQuery('div._shakehack').css('width', (i, val) => renderSeparately ? `${this.initialWidth + 200}px` : `${this.initialWidth}px`);
+        window.tableResize(true);
     }
 }
