@@ -3,7 +3,7 @@ import GameState from '../../components/game-state';
 import { CurrentChanceCard } from '../../shared/beans';
 import { debug } from '../../util/debug';
 
-export class ShowSpecialAction {
+export class ShowChanceCard {
     private jq: JQuery<Element>;
     private fjqs: JQuery<HTMLElement>;
 
@@ -15,7 +15,7 @@ export class ShowSpecialAction {
     }
 
     private init() {
-        require('../../style/game/show-special-action.less');
+        require('../../style/game/show-chance-card.less');
         this.fjqs = jQuery('div.table-body-board-fields-one');
         this.fjqs.filter('[mnpl-special="1"]').find('div.table-body-board-fields-one-body').wrap('<div class="table-body-board-fields-one-wrap" />').parent()/* .on('click', function (e) {
             e.stopPropagation();
