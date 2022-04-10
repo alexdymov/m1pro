@@ -133,7 +133,7 @@ export default class GameState extends Vue {
     chancePool = new Array<ChanceCard>();
     oldChancePool: Array<ChanceCard> = null;
     pendingChancePool = new Array<ChanceCard>();
-    pendingChanceToRemove = -1;
+    pendingChancesToRemove = new Array<number>();
     currentChanceCards = new Array<CurrentChanceCard>();
     comboJails = 0;
 
@@ -318,7 +318,7 @@ export default class GameState extends Vue {
                             teleport = event;
                         }
                         if (this.chancePoolInit) {
-                            this.pendingChanceToRemove = this.chancePool.findIndex(oc => isEqual(oc, chanceCard));
+                            this.pendingChancesToRemove.push(this.chancePool.findIndex(oc => isEqual(oc, chanceCard)));
                         } else {
                             this.pendingChancePool.push(chanceCard);
                         }
@@ -380,7 +380,7 @@ export default class GameState extends Vue {
     }
 
     private isMoveReverseApplied(packetRound: number, current: boolean) {
-        const res = (current || (this.storage.status.round - packetRound) < 2);
+        const res = (current || (this.storage.status.round - packetRound) < 1);
         debug(`isMoveReverseApplied===${res}`, current, this.storage.status.round - packetRound);
         return res;
     }
@@ -390,7 +390,7 @@ export default class GameState extends Vue {
         const diceRollTriple = (dices?.length === 3 && dices[0] < 4 && dices[0] === dices[1] && dices[0] === dices[2]);
         const diceRollDouble = (dices?.length === 2 && dices[0] === dices[1]) ||
             (dices?.length === 3 && dices[0] === dices[1] && !diceRollTriple);
-        const res = (current || (this.storage.status.round - packetRound) < 2) && !diceRollDouble;
+        const res = (current || (this.storage.status.round - packetRound) < 1) && !diceRollDouble;
         debug(`isMoveSkipApplied===${res}`, current, this.storage.status.round - packetRound, diceRollDouble, diceRollTriple);
         return res;
     }
@@ -420,6 +420,7 @@ export default class GameState extends Vue {
         this.loadPlayers();
         this.stor.load(this.players.map(pl => pl.user_id));
         this.$watch('storage.status.round', r => {
+            debug('round', r)
             if (Object.keys(this.lastSkipMoveRounds).length !== 0) {
                 Object.keys(this.lastSkipMoveRounds).forEach(user => {
                     if (r - this.lastSkipMoveRounds[user] > 1) {
@@ -453,13 +454,13 @@ export default class GameState extends Vue {
                     Vue.set(this.lastReverseMoveRounds, Object.keys(this.pendingLastReverseMoveRounds)[0], Object.values(this.pendingLastReverseMoveRounds)[0]);
                     this.pendingLastReverseMoveRounds = {};
                 }
-                debug('pend pool', this.pendingChanceToRemove)
-                if (this.pendingChanceToRemove !== -1) {
-                    this.chancePool.splice(this.pendingChanceToRemove, 1);
+                debug('pend pool', this.pendingChancesToRemove)
+                if (this.pendingChancesToRemove.length) {
+                    this.pendingChancesToRemove.forEach(v => this.chancePool.splice(v, 1));
                     if (this.chancePool.length === 0) {
                         this.storage.config.chance_cards.forEach(card => this.chancePool.push(card));
                     }
-                    this.pendingChanceToRemove = -1;
+                    this.pendingChancesToRemove.splice(0, this.pendingChancesToRemove.length);
                 }
                 const currAction = this.currentDiceRoll || this.currentBusChoosen;
                 if (currAction.move_reverse && this.lastReverseMoveRounds[currAction.user_id]) {
