@@ -31,6 +31,7 @@ export class TableAction {
 
     private init() {
         this.base.$watch('$parent.action_types', (val: Set<string>) => {
+            debug('action_types', val);
             if (val.size && this.state.user.user_id === this.state.storage.status.action_player) {
                 if (val.has('toAuction')) {
                     const move = this.base.player.position;
@@ -44,6 +45,12 @@ export class TableAction {
                     const locked = this.state.lockedFields.has(move);
                     debug('actions', val, move, locked);
                     locked && this.perform('auctionDecline', val);
+                }
+                if (val.has('noBuy')) {
+                    const move = this.base.player.position;
+                    const locked = this.state.lockedFields.has(move);
+                    debug('actions', val, move, locked);
+                    locked && this.perform('noBuy', val);
                 }
             }
         })
