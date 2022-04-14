@@ -60,7 +60,7 @@ export class PlayerCards {
         );
 
         const order = Number(card.mnpl('order'));
-        const idx = this.state.players.findIndex(pl => pl.order === order);
+        const idx = this.state.players.findIndex(pl => this.isPlayerOrder(pl, order));
         const extraBtn = this.initExtraStats(body, stats, idx);
 
         const pl = this.state.players[idx];
@@ -87,6 +87,10 @@ export class PlayerCards {
                 [credit, share, assets, extraBtn].forEach(jq => jq.hide());
             }
         });
+    }
+
+    private isPlayerOrder(pl: Player, order: number): boolean {
+        return (this.state.settings.changeColor ? pl.order : pl.orderOrig) === order;
     }
 
     private initExtraStats(body: JQuery<HTMLElement>, stats: JQuery<HTMLElement>, idx: number) {
@@ -128,7 +132,7 @@ export class PlayerCards {
 
     private updateCard(card: JQuery<HTMLElement>) {
         const order = Number(card.mnpl('order'));
-        const pl = this.state.players.find(pl => pl.order === order);
+        const pl = this.state.players.find(pl => this.isPlayerOrder(pl, order));
         card.find('div.table-body-players-card-body').append(
             jQuery('<div class="table-body-players-card-body-info"/>').append(
                 pl.rank?.pts && jQuery('<div class="rank" />')
