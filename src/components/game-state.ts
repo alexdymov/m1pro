@@ -209,7 +209,7 @@ export default class GameState extends Vue {
                     const firstPacket = ref.firstHandledPacket === 0;
                     if (firstPacket) {
                         ref.firstHandledPacket = e.msg.id;
-                        ref.oldChancePool = ref.storage.config.chance_cards && [...ref.storage.config.chance_cards];
+                        ref.oldChancePool = ref.storage.config.chance_cards && [...ref.storage.config.chance_cards] || [];
                         ref.loadDemo().then(msgs => {
                             debug('start process old packets', msgs.length, 'until', ref.firstHandledPacket);
                             msgs.some(msg => {
