@@ -68,7 +68,6 @@
     "sync": "^0.2.5",
     "ts-loader": "9.2.6",
     "typescript": "4.4.3",
-    "url-loader": "^4.1.1",
     "userscript-metadata-webpack-plugin": "0.1.0",
     "vue": "^2.6.0",
     "webpack": "5.53.0",

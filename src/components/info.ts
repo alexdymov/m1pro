@@ -40,7 +40,6 @@ const opts: ComponentOptions<Vue> = {
             cur.is('div.Info-btn-pro') && this.state.changeSeen();
         });
         jq.find('div.Info-btn-main').append(jQuery('a.header-logo svg').clone().attr('width', 128).attr('height', 128));
-        jq.find('div.Info-btn-pro').css('background-image', `url(${logo})`);
         this.state.$watch('lastSeen', () => {
             jq.find('div.badge').hide();
         });
