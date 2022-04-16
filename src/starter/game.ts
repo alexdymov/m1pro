@@ -11,6 +11,7 @@ export const gameStarter = () => {
     // vooker.debug = true;
     const state = new GameState();
 
+    require('../style/game.less');
     require('../style/game/tips.css');
     require('../style/game/remove-k.css');
     vooker.ifBeforeCreate(v => v.$options.name === 'storage', v => state.init(v));

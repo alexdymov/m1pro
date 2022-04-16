@@ -17,14 +17,15 @@ export class ShowChanceCard {
     private init() {
         require('../../style/game/show-chance-card.less');
         this.fjqs = jQuery('div.table-body-board-fields-one');
-        this.fjqs.filter('[mnpl-special="1"]').find('div.table-body-board-fields-one-body').wrap('<div class="table-body-board-fields-one-wrap" />').parent()/* .on('click', function (e) {
+        this.fjqs.filter('[mnpl-special="1"]').find('div.table-body-board-fields-one-body').wrap('<div class="table-body-board-fields-one-wrap" />')/*
+        .parent().on('click', function (e) {
             e.stopPropagation();
             const parent = $(this);
             if (!parent.is(':has(div.table-body-board-fields-one-back)')) {
                 parent.append(jQuery('<div class="table-body-board-fields-one-back"/>').append('<div class="_logo teleport"/>'));
             }
             parent.toggleClass('active');
-        }) */;
+        })*/
         this.state.$watch('currentChanceCards', (cards: Array<CurrentChanceCard>) => {
             debug('cur chance cards', JSON.parse(JSON.stringify(cards)));
             cards.forEach(card => {
@@ -53,13 +54,13 @@ export class ShowChanceCard {
                         back.append(`<span class="profit_neg ion-social-usd _text">-${card.sum}</span>`);
                         break;
                     case 'move_skip':
-                        back.append('<span class="ion-pause"/>');
+                        back.append('<div class="_logo skip img-skip-move"/>');
                         break;
                     case 'reverse':
                         back.append('<span class="ion-ios-rewind"/>');
                         break;
                     case 'fields_disaster':
-                        back.append('<span class="nuclear"/>');
+                        back.append('<div class="_logo bomb img-bomb"/>');
                         break;
                 }
                 // back.append('<div class="ion-ios-rewind"/>');

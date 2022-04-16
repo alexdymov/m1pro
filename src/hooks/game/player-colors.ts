@@ -27,7 +27,7 @@ export class PlayerColors {
         this.state.players.forEach((pl, i) => {
             pl.token = this.tokens.get(i);
             jQuery(pl.token)
-                .append('<div class="ion-ios-pause _skip"/>')
+                .append('<div class="_skip"/>')
                 .append('<div class="ion-ios-rewind _back" />')
                 .children().hide();
         });

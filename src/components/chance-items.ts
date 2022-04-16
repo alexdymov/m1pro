@@ -57,19 +57,19 @@ const ChanceItemsProps = Vue.extend({
             <span class="pool-sub" v-if="chanceValues.outcome.insurance > 0">Страховка: -{{chanceValues.outcome.insurance}}</span>
         </div>
         <div class="pool-item" v-if="chanceValues.teleport > 0">
-            <div class="pool-teleport" /><span class="pool-count">{{chanceValues.teleport}}</span>
+            <div class="pool-logo pool-teleport" /><span class="pool-count">{{chanceValues.teleport}}</span>
         </div>
         <div class="pool-item" v-if="chanceValues.jail > 0">
-            <div class="pool-jail" /><span class="pool-count">{{chanceValues.jail}}</span>
+            <div class="pool-logo pool-jail" /><span class="pool-count">{{chanceValues.jail}}</span>
         </div>
         <div class="pool-item" v-if="chanceValues.skip > 0">
-            <div class="ion-pause" /><span class="pool-count">{{chanceValues.skip}}</span>
+            <div class="pool-logo pool-skip img-skip-move" /><span class="pool-count">{{chanceValues.skip}}</span>
         </div>
         <div class="pool-item" v-if="chanceValues.reverse > 0">
             <div class="ion-ios-rewind" /><span class="pool-count">{{chanceValues.reverse}}</span>
         </div>
         <div class="pool-item" v-if="chanceValues.disaster > 0">
-            <div class="ion-nuclear" /><span class="pool-count">{{chanceValues.disaster}}</span>
+            <div class="pool-logo pool-bomb img-bomb" /><span class="pool-count">{{chanceValues.disaster}}</span>
         </div>
         <div class="pool-item" v-if="chanceValues.unknown > 0">
             <div class="ion-help" /><span class="pool-count">{{chanceValues.unknown}}</span>
