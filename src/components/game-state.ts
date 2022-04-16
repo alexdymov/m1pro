@@ -136,6 +136,7 @@ export default class GameState extends Vue {
     pendingChancesToRemove = new Array<number>();
     currentChanceCards = new Array<CurrentChanceCard>();
     comboJails = 0;
+    doubleSpent = false;
 
     created() {
         const gameSettings = localStorage.getItem('game_settings');
@@ -264,6 +265,8 @@ export default class GameState extends Vue {
         let diceRoll: GameEvent = null;
         let otherDiceRoll: GameEvent = null;
         let teleport: GameEvent = null;
+        let doubleSpent = false;
+        this.doubleSpent = false;
         packet.msg.events?.forEach(event => {
             const pl = this.players.find(pl => pl.user_id === event.user_id);
             switch (event.type) {
@@ -284,6 +287,10 @@ export default class GameState extends Vue {
                     break;
                 case 'goToJailByCombo':
                     this.comboJails++;
+                    break;
+                case 'double_spended':
+                    doubleSpent = true;
+                    current && (this.doubleSpent = true);
                     break;
 
                 case 'startBypass':
@@ -349,7 +356,7 @@ export default class GameState extends Vue {
                             break;
                         case 'move_skip':
                             // debug('chance move_skip')
-                            this.isMoveSkipApplied(packet.msg.status.round, current, diceRoll || otherDiceRoll) &&
+                            this.isMoveSkipApplied(packet.msg.status.round, current, diceRoll || otherDiceRoll, doubleSpent) &&
                                 (this.pendingLastSkipMoveRounds[event.user_id] = this.getCurrentRound(packet, event.user_id));
                             // debug(JSON.parse(JSON.stringify(this.lastSkipMoveRounds)))
                             break;
@@ -399,13 +406,13 @@ export default class GameState extends Vue {
         return res;
     }
 
-    private isMoveSkipApplied(packetRound: number, current: boolean, diceRoll: GameEvent) {
+    private isMoveSkipApplied(packetRound: number, current: boolean, diceRoll: GameEvent, doubleSpent: boolean) {
         const dices = diceRoll?.dices;
         const diceRollTriple = (dices?.length === 3 && dices[0] < 4 && dices[0] === dices[1] && dices[0] === dices[2]);
         const diceRollDouble = (dices?.length === 2 && dices[0] === dices[1]) ||
             (dices?.length === 3 && dices[0] === dices[1] && !diceRollTriple);
-        const res = (current || (this.storage.status.round - packetRound) < 1) && !diceRollDouble;
-        debug(`isMoveSkipApplied===${res}`, current, this.storage.status.round - packetRound, diceRollDouble, diceRollTriple);
+        const res = (current || (this.storage.status.round - packetRound) < 1) && (!diceRollDouble || doubleSpent);
+        debug(`isMoveSkipApplied===${res}`, current, this.storage.status.round - packetRound, diceRollDouble, diceRollTriple, doubleSpent);
         return res;
     }
 
