@@ -61,7 +61,7 @@ export class ShowFieldMove {
     }
 
     private getPositions(v: GameEvent) {
-        const reverse = (this.state.currentDiceRoll || this.state.otherDiceRoll).move_reverse;
+        const reverse = this.state.getCurrentDiceRoll().move_reverse;
         const dices = v.dices;
         if (dices.length == 2) {
             return [v.mean_position];

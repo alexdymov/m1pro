@@ -294,7 +294,8 @@ export interface GameEvent {
     chance_id?: number
     destinations_count?: number
     dices: Array<number>
-    mean_position: number
+    mean_position?: number
+    field_id?: number
     move_reverse?: number
 }
 
