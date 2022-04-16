@@ -101,13 +101,14 @@
                 height: 78.4px;
                 width: 37.099999999999994px;
             }
-            [mnpl-line="1"] & {
-                transform: rotate(90deg);
+            &._rotating {
+                [mnpl-line="1"] & {
+                    transform: rotate(90deg);
+                }
+                [mnpl-line="3"] & {
+                    transform: rotate(270deg);
+                }
             }
-            [mnpl-line="3"] & {
-                transform: rotate(270deg);
-            }
-
             &.teleport {
                 background-image: url("https://m1.dogecdn.wtf/fields/special/wormhole.svg");
             }

@@ -33,10 +33,10 @@ export class ShowChanceCard {
                 const back = jQuery('<div class="table-body-board-fields-one-back"/>').appendTo(field.find('div.table-body-board-fields-one-wrap'));
                 switch (card.card.type) {
                     case 'teleport':
-                        back.append('<div class="_logo teleport"/>');
+                        back.append('<div class="_logo _rotating teleport"/>');
                         break;
                     case 'jail':
-                        back.append('<div class="_logo jail"/>');
+                        back.append('<div class="_logo _rotating jail"/>');
                         break;
                     case 'cash_in':
                         back.append(`<span class="profit_pos ion-social-usd _text">+${card.sum}</span>`);
