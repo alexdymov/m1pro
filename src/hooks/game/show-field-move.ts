@@ -15,7 +15,7 @@ export class ShowFieldMove {
         state.$watch('loaded', _ => {
             this.fjqs = jQuery('div.table-body-board-fields-one');
 
-            this.state.$watch('currentDiceRoll', (v: GameEvent) => {
+            this.state.$watch('currentEvents.lastDiceEvent', (v: GameEvent) => {
                 debug('current_move', v && JSON.parse(JSON.stringify(v)));
                 if (v) {
                     const poss = this.getPositions(v);
@@ -61,7 +61,7 @@ export class ShowFieldMove {
     }
 
     private getPositions(v: GameEvent) {
-        const reverse = this.state.getCurrentDiceRoll().move_reverse;
+        const reverse = v.move_reverse;
         const dices = v.dices;
         if (dices.length == 2) {
             return [v.mean_position];

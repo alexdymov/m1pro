@@ -57,6 +57,19 @@ interface Packet {
     no_status?: boolean
 }
 
+class PacketPlayerEvents {
+    round: number;
+    user: number;
+    doubleSpent = false;
+    events = new Array<GameEvent>();
+    lastDiceEvent: GameEvent = null;
+
+    getLastPosition() {
+        const last = [...this.events].reverse().find(e => e.field_id !== undefined || e.mean_position !== undefined);
+        return last.mean_position ?? last.field_id;
+    }
+}
+
 const WORMHOLE_DEFAULT_FREE_DESTINATIONS = 3;
 
 declare module 'vue/types/vue' {
@@ -121,8 +134,6 @@ export default class GameState extends Vue {
     lastPacket = 0;
     gameOver = false;
     settings: GameSettings = null;
-    currentDiceRoll: GameEvent = null;
-    otherDiceRoll: GameEvent = null;
     lastBusUserId = 0;
     currentTeleports = new Array<GameEvent>();
     pendingLastReverseMoveRounds: { [key: string]: number } = {};
@@ -136,7 +147,8 @@ export default class GameState extends Vue {
     pendingChancesToRemove = new Array<number>();
     currentChanceCards = new Array<CurrentChanceCard>();
     comboJails = 0;
-    doubleSpent = false;
+    currentEvents = new PacketPlayerEvents();
+    demoEvents = new PacketPlayerEvents();
 
     created() {
         const gameSettings = localStorage.getItem('game_settings');
@@ -229,8 +241,12 @@ export default class GameState extends Vue {
                                     ref.chancePoolInit = true;
                                     return true;
                                 }
-                                ref.handlePacket({ msg }, false);
-                            })
+                                try {
+                                    ref.handlePacket(e, false);
+                                } catch (error) {
+                                    console.error('error handling demo packet', e, error);
+                                }
+                            });
                         });
                     }
                     oldpp.apply(v, arguments);
@@ -260,13 +276,9 @@ export default class GameState extends Vue {
             this.clearLastBus();
             this.clearLastReverse(packet);
         }
-        this.currentDiceRoll = null;
-        this.otherDiceRoll = null;
-        let diceRoll: GameEvent = null;
-        let otherDiceRoll: GameEvent = null;
         let teleport: GameEvent = null;
-        let doubleSpent = false;
-        this.doubleSpent = false;
+        const roll = current ? this.currentEvents : this.demoEvents;
+        this.checkRoll(roll, packet);
         packet.msg.events?.forEach(event => {
             const pl = this.players.find(pl => pl.user_id === event.user_id);
             switch (event.type) {
@@ -274,13 +286,13 @@ export default class GameState extends Vue {
                     current && (this.lastBusUserId = event.user_id)
                 case 'fieldToMoveChoosed':
                 case 'unjailedByFee':
-                    otherDiceRoll = event;
-                    current && (this.otherDiceRoll = event);
+                    roll.events.push(event);
                     break;
                 case 'rollDices':
-                    diceRoll = event;
-                    current && !packet.no_events && (this.currentDiceRoll = event);
-                    // !packet.no_events && isdo
+                    if (!packet.no_events) {
+                        roll.events.push(event);
+                        roll.lastDiceEvent = event;
+                    }
                     break;
                 case 'gameOver':
                     this.gameOver = true;
@@ -289,8 +301,7 @@ export default class GameState extends Vue {
                     this.comboJails++;
                     break;
                 case 'double_spended':
-                    doubleSpent = true;
-                    current && (this.doubleSpent = true);
+                    roll.doubleSpent = true;
                     break;
 
                 case 'startBypass':
@@ -325,7 +336,7 @@ export default class GameState extends Vue {
                     const chanceCard = this.storage.config.chance_cards[event.chance_id];
 
                     if (current) {
-                        this.currentChanceCards.push(new CurrentChanceCard(teleport ? teleport.mean_position : this.getCurrentDiceRollPosition(), chanceCard, event.money ?? event.sum));
+                        this.currentChanceCards.push(new CurrentChanceCard(teleport ? teleport.mean_position : this.currentEvents.getLastPosition(), chanceCard, event.money ?? event.sum));
                         if (chanceCard.type === 'teleport') {
                             teleport = event;
                         }
@@ -356,12 +367,12 @@ export default class GameState extends Vue {
                             break;
                         case 'move_skip':
                             // debug('chance move_skip')
-                            this.isMoveSkipApplied(packet.msg.status.round, current, diceRoll || otherDiceRoll, doubleSpent) &&
+                            this.isMoveSkipApplied(roll, current) &&
                                 (this.pendingLastSkipMoveRounds[event.user_id] = this.getCurrentRound(packet, event.user_id));
                             // debug(JSON.parse(JSON.stringify(this.lastSkipMoveRounds)))
                             break;
                         case 'reverse':
-                            this.isMoveReverseApplied(packet.msg.status.round, current) &&
+                            this.isMoveReverseApplied(roll, current) &&
                                 (this.pendingLastReverseMoveRounds[event.user_id] = this.getCurrentRound(packet, event.user_id));
                             break;
                     }
@@ -370,13 +381,20 @@ export default class GameState extends Vue {
         })
     }
 
-    getCurrentDiceRoll() {
-        return this.currentDiceRoll || this.otherDiceRoll;
-    }
-
-    getCurrentDiceRollPosition() {
-        const roll = this.getCurrentDiceRoll();
-        return roll.mean_position ?? roll.field_id;
+    private checkRoll(roll: PacketPlayerEvents, packet: Packet) {
+        const eventUser = packet.msg.events[0]?.user_id;
+        if (!eventUser) {
+            return roll;
+        }
+        const round = this.getCurrentRound(packet, eventUser);
+        if (round === roll.round && eventUser === roll.user) {
+            return roll;
+        }
+        roll.round = round;
+        roll.user = eventUser;
+        roll.doubleSpent = false;
+        roll.lastDiceEvent = null;
+        roll.events.splice(0, roll.events.length);
     }
 
     private clearLastReverse(packet: Packet) {
@@ -400,19 +418,19 @@ export default class GameState extends Vue {
         }
     }
 
-    private isMoveReverseApplied(packetRound: number, current: boolean) {
-        const res = (current || (this.storage.status.round - packetRound) < 1);
-        debug(`isMoveReverseApplied===${res}`, current, this.storage.status.round - packetRound);
+    private isMoveReverseApplied(roll: PacketPlayerEvents, current: boolean) {
+        const res = (current || (this.storage.status.round - roll.round) < 1);
+        debug(`isMoveReverseApplied===${res}`, current, this.storage.status.round - roll.round, roll);
         return res;
     }
 
-    private isMoveSkipApplied(packetRound: number, current: boolean, diceRoll: GameEvent, doubleSpent: boolean) {
-        const dices = diceRoll?.dices;
+    private isMoveSkipApplied(roll: PacketPlayerEvents, current: boolean) {
+        const dices = roll.lastDiceEvent?.dices;
         const diceRollTriple = (dices?.length === 3 && dices[0] < 4 && dices[0] === dices[1] && dices[0] === dices[2]);
         const diceRollDouble = (dices?.length === 2 && dices[0] === dices[1]) ||
             (dices?.length === 3 && dices[0] === dices[1] && !diceRollTriple);
-        const res = (current || (this.storage.status.round - packetRound) < 1) && (!diceRollDouble || doubleSpent);
-        debug(`isMoveSkipApplied===${res}`, current, this.storage.status.round - packetRound, diceRollDouble, diceRollTriple, doubleSpent);
+        const res = (current || (this.storage.status.round - roll.round) < 1) && (!diceRollDouble || roll.doubleSpent);
+        debug(`isMoveSkipApplied===${res}`, current, this.storage.status.round - roll.round, diceRollDouble, diceRollTriple, roll);
         return res;
     }
 
@@ -483,10 +501,9 @@ export default class GameState extends Vue {
                     }
                     this.pendingChancesToRemove.splice(0, this.pendingChancesToRemove.length);
                 }
-                const currAction = this.getCurrentDiceRoll();
-                if (currAction.move_reverse && this.lastReverseMoveRounds[currAction.user_id]) {
-                    debug('clear reverse on the move', currAction.user_id, this.lastReverseMoveRounds[currAction.user_id]);
-                    Vue.delete(this.lastReverseMoveRounds, currAction.user_id);
+                if (this.currentEvents.lastDiceEvent?.move_reverse && this.lastReverseMoveRounds[this.currentEvents.user]) {
+                    debug('clear reverse on the move', this.currentEvents.user, this.lastReverseMoveRounds[this.currentEvents.user]);
+                    Vue.delete(this.lastReverseMoveRounds, this.currentEvents.user);
                 }
             }
         });
