@@ -45,6 +45,16 @@ export class ShowFieldMove {
                 this.pendingBus = false;
             });
 
+            state.$watch('wormholeDestinations', (v: Array<number>) => {
+                if (v.length) {
+                    this.fjqs.first().parent().addClass('_mode_choose_field');
+                    v.forEach(ev => this.fjqs.eq(ev).addClass('_mode_choose_field_available'));
+                } else {
+                    this.fjqs.removeClass('_mode_choose_field_available');
+                    this.fjqs.parent().removeClass('_mode_choose_field');
+                }
+            })
+
             state.$watch('storage.is_events_processing', p => {
                 debug('is_events_processing', p);
                 if (!p && this.pending && !this.pendingBus) {

@@ -42,6 +42,9 @@ interface GameStatus {
     round: number
     viewers: number
     action_player: number
+    current_move: {
+        wormhole_destinations?: number[]
+    }
 }
 
 interface UpdateAction {
@@ -149,6 +152,7 @@ export default class GameState extends Vue {
     comboJails = 0;
     currentEvents = new PacketPlayerEvents();
     demoEvents = new PacketPlayerEvents();
+    wormholeDestinations = new Array<number>();
 
     created() {
         const gameSettings = localStorage.getItem('game_settings');
@@ -223,7 +227,7 @@ export default class GameState extends Vue {
                     if (firstPacket) {
                         ref.firstHandledPacket = e.msg.id;
                         ref.oldChancePool = ref.storage.config.chance_cards && [...ref.storage.config.chance_cards] || [];
-                        ref.loadDemo().then(msgs => {
+                        ref.loadDemo(e.msg.id).then(msgs => {
                             debug('start process old packets', msgs.length, 'until', ref.firstHandledPacket);
                             msgs.some(msg => {
                                 // const oldpl = msg.events[0]?.user_id;
@@ -330,6 +334,16 @@ export default class GameState extends Vue {
 
                 case 'wormhole_opened':
                     pl.expenses += this.storage.config.WORMHOLE_EXTRA_DESTINATION_COST * (event.destinations_count - WORMHOLE_DEFAULT_FREE_DESTINATIONS);
+                    if (!this.storage.about.is_m1tv && event.user_id !== this.user.user_id && current) {
+                        this.loadDemo(packet.msg.id).then(msgs => {
+                            const wh = msgs.find(msg => msg.id === packet.msg.id);
+                            this.wormholeDestinations.push(...wh.status.current_move.wormhole_destinations);
+                        })
+                    }
+                    break;
+                case 'wormhole_used':
+                    roll.events.push(event);
+                    this.wormholeDestinations.splice(0, this.wormholeDestinations.length);
                     break;
 
                 case 'chance':
@@ -434,10 +448,17 @@ export default class GameState extends Vue {
         return res;
     }
 
-    public loadDemo(): JQueryPromise<Array<UpdateAction>> {
-        return $.get(`https://demos.monopoly-one.com/dl/${this.storage.about.gs_id}/${this.storage.about.gs_game_id}.mid`)
+    public loadDemo(id?: number, tries = 0): JQueryPromise<Array<UpdateAction>> {
+        return $.get(`https://demos.monopoly-one.com/dl/${this.storage.about.gs_id}/${this.storage.about.gs_game_id}.mid?_=${new Date().getTime()}`)
             .then((res: string) => {
-                return res.split("\n").map(line => JSON.parse(line));
+                const lines: Array<UpdateAction> = res.split("\n").map(line => JSON.parse(line));
+                if (!id || (id && lines.find(msg => msg.id === id))) {
+                    return lines;
+                } else if (tries < 3) {
+                    return this.loadDemo(id, ++tries);
+                } else {
+                    throw new Error('out of demo load tries');
+                }
             }).fail((err) => console.error('failed to load demo', err));
     }
 
