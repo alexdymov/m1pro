@@ -66,7 +66,7 @@ const ChanceItemsProps = Vue.extend({
             <div class="pool-logo pool-skip img-skip-move" /><span class="pool-count">{{chanceValues.skip}}</span>
         </div>
         <div class="pool-item" v-if="chanceValues.reverse > 0">
-            <div class="ion-ios-rewind" /><span class="pool-count">{{chanceValues.reverse}}</span>
+            <div class="pool-logo pool-back img-back-move" /><span class="pool-count">{{chanceValues.reverse}}</span>
         </div>
         <div class="pool-item" v-if="chanceValues.disaster > 0">
             <div class="pool-logo pool-bomb img-bomb" /><span class="pool-count">{{chanceValues.disaster}}</span>

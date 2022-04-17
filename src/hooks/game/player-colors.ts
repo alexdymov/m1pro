@@ -28,7 +28,7 @@ export class PlayerColors {
             pl.token = this.tokens.get(i);
             jQuery(pl.token)
                 .append('<div class="_skip"/>')
-                .append('<div class="ion-ios-rewind _back" />')
+                .append('<div class="_back" />')
                 .children().hide();
         });
         debug('players tokens', this.state.players.map(pl => pl.token));
