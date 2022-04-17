@@ -57,7 +57,7 @@ export class ShowChanceCard {
                         back.append('<div class="_logo skip img-skip-move"/>');
                         break;
                     case 'reverse':
-                        back.append('<span class="ion-ios-rewind"/>');
+                        back.append('<span class="_logo back img-back-move"/>');
                         break;
                     case 'fields_disaster':
                         back.append('<div class="_logo bomb img-bomb"/>');
