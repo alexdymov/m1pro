@@ -307,6 +307,10 @@ export interface ChanceCard {
     type: string
 }
 
+export interface ChanceCardState extends ChanceCard {
+    out: boolean
+}
+
 export class CurrentChanceCard {
     constructor(public fieldId: number,
         public card: ChanceCard,

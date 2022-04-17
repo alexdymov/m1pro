@@ -1,11 +1,10 @@
 import Component from "vue-class-component";
 import Vue from 'vue';
-import { AsyncStorage, GameField, GamePlayer, Gender, Rank, UserInfoLong, BanInfo, Friendship, GameEvent, ChanceCard, CurrentChanceCard } from '../shared/beans';
+import { AsyncStorage, GameField, GamePlayer, Gender, Rank, UserInfoLong, BanInfo, Friendship, GameEvent, ChanceCard, CurrentChanceCard, ChanceCardState } from '../shared/beans';
 import merge from "lodash/merge";
 import { debug } from '../util/debug';
 import cloneDeep from "lodash/cloneDeep";
 import extend from "lodash/extend";
-import isEqual from "lodash/isEqual";
 
 class GameSettings {
     splitCommonStats = true;
@@ -144,9 +143,9 @@ export default class GameState extends Vue {
     lastReverseMoveRounds: { [key: string]: number } = {};
     lastSkipMoveRounds: { [key: string]: number } = {};
     chancePoolInit = false;
-    chancePool = new Array<ChanceCard>();
-    oldChancePool: Array<ChanceCard> = null;
-    pendingChancePool = new Array<ChanceCard>();
+    chancePool = new Array<ChanceCardState>();
+    oldChancePool: Array<ChanceCardState> = null;
+    pendingChancePool = new Array<number>();
     pendingChancesToRemove = new Array<number>();
     currentChanceCards = new Array<CurrentChanceCard>();
     comboJails = 0;
@@ -226,7 +225,7 @@ export default class GameState extends Vue {
                     const firstPacket = ref.firstHandledPacket === 0;
                     if (firstPacket) {
                         ref.firstHandledPacket = e.msg.id;
-                        ref.oldChancePool = ref.storage.config.chance_cards && [...ref.storage.config.chance_cards] || [];
+                        ref.oldChancePool = ref.storage.config.chance_cards && [...ref.storage.config.chance_cards].map(c => ({ ...c, out: false })) || [];
                         ref.loadDemo(e.msg.id).then(msgs => {
                             debug('start process old packets', msgs.length, 'until', ref.firstHandledPacket);
                             msgs.some(msg => {
@@ -238,8 +237,7 @@ export default class GameState extends Vue {
                                     debug('stop process old packets')
                                     const pool = [...ref.oldChancePool];
                                     ref.pendingChancePool.forEach(pc => {
-                                        const idx = pool.findIndex(c => isEqual(c, pc));
-                                        pool.splice(idx, 1);
+                                        pool[pc].out = true;
                                     });
                                     pool.forEach(card => ref.chancePool.push(card));
                                     ref.chancePoolInit = true;
@@ -355,15 +353,14 @@ export default class GameState extends Vue {
                             teleport = event;
                         }
                         if (this.chancePoolInit) {
-                            this.pendingChancesToRemove.push(this.chancePool.findIndex(oc => isEqual(oc, chanceCard)));
+                            this.pendingChancesToRemove.push(event.chance_id);
                         } else {
-                            this.pendingChancePool.push(chanceCard);
+                            this.pendingChancePool.push(event.chance_id);
                         }
                     } else {
-                        const idx = this.oldChancePool.findIndex(oc => isEqual(oc, chanceCard));
-                        this.oldChancePool.splice(idx, 1);
-                        if (this.oldChancePool.length === 0) {
-                            this.oldChancePool = [...this.storage.config.chance_cards];
+                        this.oldChancePool[event.chance_id].out = true;
+                        if (this.oldChancePool.filter(oc => !oc.out).length === 0) {
+                            this.oldChancePool.forEach(oc => oc.out = false);
                         }
                     }
 
@@ -516,9 +513,9 @@ export default class GameState extends Vue {
                 }
                 debug('pend pool', JSON.parse(JSON.stringify(this.pendingChancesToRemove)))
                 if (this.pendingChancesToRemove.length) {
-                    this.pendingChancesToRemove.forEach(v => this.chancePool.splice(v, 1));
-                    if (this.chancePool.length === 0) {
-                        this.storage.config.chance_cards.forEach(card => this.chancePool.push(card));
+                    this.pendingChancesToRemove.forEach(v => this.chancePool[v].out = true);
+                    if (this.chancePool.filter(c => !c.out).length === 0) {
+                        this.chancePool.forEach(c => c.out = false);
                     }
                     this.pendingChancesToRemove.splice(0, this.pendingChancesToRemove.length);
                 }

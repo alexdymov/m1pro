@@ -1,6 +1,6 @@
 import Component from "vue-class-component";
 import Vue from 'vue';
-import { ChanceCard, GamePlayer } from '../shared/beans';
+import { ChanceCard, ChanceCardState, GamePlayer } from '../shared/beans';
 import cloneDeep from 'lodash/cloneDeep';
 import { debug } from '../util/debug';
 
@@ -78,7 +78,7 @@ const ChanceItemsProps = Vue.extend({
     `,
     watch: {
         chanceCards: {
-            handler(val: Array<ChanceCard>) {
+            handler(val: Array<ChanceCardState>) {
                 this.rendered = false;
                 this.chanceValues = cloneDeep(this.chanceValuesInit);
                 this.handleValues(val);
@@ -151,11 +151,14 @@ export default class ChanceItems extends ChanceItemsProps {
             }
         });
         this.chanceValuesInit = cloneDeep(this.chanceValues);
-        this.handleValues(this.chanceCards as Array<ChanceCard>);
+        this.handleValues(this.chanceCards as Array<ChanceCardState>);
     }
 
-    handleValues(val: Array<ChanceCard>) {
+    handleValues(val: Array<ChanceCardState>) {
         val.forEach(card => {
+            if (card.out) {
+                return;
+            }
             switch (card.type) {
                 case 'cash_in':
                     this.chanceValues.income.random++;
