@@ -59,6 +59,7 @@ export class TableContract {
                     field_ids_to: [],
                     money_to: 0,
                 };
+                this.base.mode = 0;
                 this.btnCtr.show();
                 this.jq.find('div.TableContract-actions').show();
             }
