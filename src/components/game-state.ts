@@ -244,9 +244,9 @@ export default class GameState extends Vue {
                                     return true;
                                 }
                                 try {
-                                    ref.handlePacket(e, false);
+                                    ref.handlePacket({ msg }, false);
                                 } catch (error) {
-                                    console.error('error handling demo packet', e, error);
+                                    console.error('error handling demo packet', msg, error);
                                 }
                             });
                         });
