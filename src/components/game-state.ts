@@ -1,6 +1,6 @@
 import Component from "vue-class-component";
 import Vue from 'vue';
-import { AsyncStorage, GameField, GamePlayer, Gender, Rank, UserInfoLong, BanInfo, Friendship, GameEvent, ChanceCard, CurrentChanceCard, ChanceCardState } from '../shared/beans';
+import { AsyncStorage, GameField, GamePlayer, Gender, Rank, UserInfoLong, BanInfo, Friendship, GameEvent, ChanceCard, CurrentChanceCard, ChanceCardState, ContractEventData, ContractInfo } from '../shared/beans';
 import merge from "lodash/merge";
 import { debug } from '../util/debug';
 import cloneDeep from "lodash/cloneDeep";
@@ -43,6 +43,7 @@ interface GameStatus {
     action_player: number
     current_move: {
         wormhole_destinations?: number[]
+        contract: ContractEventData
     }
 }
 
@@ -50,7 +51,7 @@ interface UpdateAction {
     id: number
     events: Array<GameEvent>
     status: GameStatus
-    time: any
+    time: { ts_now?: number }
 }
 
 interface Packet {
@@ -152,6 +153,8 @@ export default class GameState extends Vue {
     currentEvents = new PacketPlayerEvents();
     demoEvents = new PacketPlayerEvents();
     wormholeDestinations = new Array<number>();
+    contractEvents = new Array<ContractInfo>();
+    ongoingContract: ContractEventData = null;
 
     created() {
         const gameSettings = localStorage.getItem('game_settings');
@@ -234,7 +237,7 @@ export default class GameState extends Vue {
                                 //     ref.players.find(pl => oldpl === pl.user_id)?.nick,
                                 //     msg.events?.map(event => `${event.type}=${JSON.stringify(event)}`), JSON.parse(JSON.stringify(msg)));
                                 if (msg.id === ref.firstHandledPacket) {
-                                    debug('stop process old packets')
+                                    debug('stop process old packets', ref)
                                     const pool = [...ref.oldChancePool];
                                     ref.pendingChancePool.forEach(pc => {
                                         pool[pc].out = true;
@@ -280,7 +283,7 @@ export default class GameState extends Vue {
         }
         let teleport: GameEvent = null;
         const roll = current ? this.currentEvents : this.demoEvents;
-        this.checkRoll(roll, packet);
+        packet.msg.status && this.checkRoll(roll, packet);
         packet.msg.events?.forEach(event => {
             const pl = this.players.find(pl => pl.user_id === event.user_id);
             switch (event.type) {
@@ -336,12 +339,37 @@ export default class GameState extends Vue {
                         this.loadDemo(packet.msg.id).then(msgs => {
                             const wh = msgs.find(msg => msg.id === packet.msg.id);
                             this.wormholeDestinations.push(...wh.status.current_move.wormhole_destinations);
-                        })
+                        });
                     }
                     break;
                 case 'wormhole_used':
                     roll.events.push(event);
                     this.wormholeDestinations.splice(0, this.wormholeDestinations.length);
+                    break;
+
+                case 'contract':
+                    debug('contract', packet.msg.id, current)
+                    if (current) {
+                        if (!this.storage.about.is_m1tv && event.user_id !== this.user.user_id && event.to !== this.user.user_id) {
+                            this.loadDemo(packet.msg.id).then(msgs => {
+                                const contract = msgs.find(msg => msg.id === packet.msg.id);
+                                this.ongoingContract = { ...contract.status.current_move.contract };
+                                this.contractEvents.push({ ...contract.status.current_move.contract, time: contract.time.ts_now, result: 0 });
+                            });
+                        } else {
+                            this.contractEvents.push({ ...packet.msg.status.current_move.contract, time: packet.msg.time.ts_now, result: 0 });
+                        }
+                    } else {
+                        this.contractEvents.push({ ...packet.msg.status.current_move.contract, time: packet.msg.time.ts_now, result: 0 });
+                    }
+                    break;
+                case 'contract_accepted':
+                    this.contractEvents[this.contractEvents.length - 1].result = 1;
+                    this.ongoingContract = null;
+                    break;
+                case 'contract_declined':
+                    this.contractEvents[this.contractEvents.length - 1].result = 2;
+                    this.ongoingContract = null;
                     break;
 
                 case 'chance':

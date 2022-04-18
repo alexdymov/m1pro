@@ -289,6 +289,7 @@ export interface AsyncStorage {
 export interface GameEvent {
     type: string
     user_id: number
+    to?: number
     money?: number
     sum?: number
     chance_id?: number
@@ -316,4 +317,18 @@ export class CurrentChanceCard {
         public card: ChanceCard,
         public sum?: number) {
     }
+}
+
+export interface ContractEventData {
+    from: number
+    to: number
+    out_fields: number[]
+    out_money: number
+    in_fields: number[]
+    in_money: number
+}
+
+export interface ContractInfo extends ContractEventData {
+    time: number
+    result: number
 }

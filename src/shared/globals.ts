@@ -37,7 +37,10 @@ declare global {
         PageNavigation: {
             openInNewTab: (url: string) => void
         }
-        parsers: { numberToSpacedString: (val: number, delimiter: string) => string }
+        parsers: {
+            numberToSpacedString: (val: number, delimiter: string) => string
+            parseTimeToString: (val: number) => string
+        }
     }
 
     interface Document {

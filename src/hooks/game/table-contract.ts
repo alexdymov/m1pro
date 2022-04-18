@@ -7,6 +7,7 @@ declare module 'vue/types/vue' {
         contract_ui: Array<{ sum: string }>
         contract: { money_from: number, money_to: number, user_id_from: number, user_id_to: number, field_ids_from: Array<number>, field_ids_to: Array<number> }
         is_m1tv: boolean
+        mode: number
     }
 }
 
@@ -31,21 +32,51 @@ export class TableContract {
         this.initX2Btn();
         this.initPaymentHelper();
         this.base.$watch('contract_ui', v => {
-            if (!v) return;
+            if (!v || this.state.ongoingContract || !this.state.mePlaying) return;
             this.checkEq();
             this.checkX2();
         }, { deep: true });
+        this.state.$watch('ongoingContract', ci => {
+            debug('show ongoing contract', JSON.parse(JSON.stringify(ci)))
+            if (ci) {
+                this.base.contract = {
+                    user_id_from: ci.from,
+                    field_ids_from: [...ci.out_fields],
+                    money_from: ci.out_money,
+                    user_id_to: ci.to,
+                    field_ids_to: [...ci.in_fields],
+                    money_to: ci.in_money,
+                }
+                this.base.mode = 2;
+                this.btnCtr.hide();
+                this.jq.find('div.TableContract-actions').hide();
+            } else {
+                this.base.contract = {
+                    user_id_from: 0,
+                    field_ids_from: [],
+                    money_from: 0,
+                    user_id_to: 0,
+                    field_ids_to: [],
+                    money_to: 0,
+                };
+                this.btnCtr.show();
+                this.jq.find('div.TableContract-actions').show();
+            }
+        });
+        this.base.$watch('mode', v => {
+            v === 0 && (this.state.ongoingContract = null);
+        })
     }
 
     private initPaymentHelper() {
         this.payhelp = jQuery('<div class="TableContract-actions-payment"><span>К оплате: <span class="paysum"/></span></div>').prependTo(this.jq.find('div.TableContract-actions'));
         this.diffhelp = jQuery('<div class="TableContract-content-payment"><span class="paydifftext"/>: <span class="paydiff"/><span class="paydiff_withmort"> (с закладом текущих полей <span class="paydifftext_mort"/>: <span class="paydiff_mort"/>)</span></div>').appendTo(this.jq.find('div.TableContract-content'));;
         this.base.$watch('contract_ui', v => {
-            if (!v) return;
+            if (!v || this.state.ongoingContract) return;
             const user = this.base.contract.user_id_from;
             const spl = this.state.storage.status.players.find(spl => spl.user_id === user);
             const field = this.state.storage.vms.fields.fields_with_equipment.get(spl.position);
-            const money = this.state.storage.current_move.moneyToPay || this.state.storage.current_move.pay || (field && field.owner_true === undefined ? field.buy : 0);
+            const money = this.state.storage.current_move?.moneyToPay || this.state.storage.current_move?.pay || (field && field.owner_true === undefined ? field.buy : 0);
             const plMoney = spl.money;
             if (money && money > 0) {
                 this.payhelp.show().find('span.paysum').text(this.state.formatMoney(money)).end();

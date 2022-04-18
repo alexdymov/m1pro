@@ -133,7 +133,66 @@
     width: 470px !important;
     left: 110px !important;
 }
-.TableHelper-content-players {
+.TableHelper-content-contracts {
+    height: 300px;
+    overflow-y: auto;
+}
+.TableHelper-content-contracts-row {
+    border-top: 1px solid #3d3e46;
+    cursor: pointer;
+}
+.TableHelper-content-contracts-head, 
+.TableHelper-content-contracts-row {
+    display: flex;
+    align-items: center;
+    >div {
+        padding: 5px 0;
+    }
+    >div:nth-child(1), >div:nth-child(2) {
+        display: flex;
+        flex-basis: 40%;
+        >div {
+            display: flex;
+            flex: 9 1 auto;
+        }
+        ._avatar {
+            flex-shrink: 0;
+            border-radius: 999px;
+            margin-right: 7px;
+            width: 25px;
+            height: 25px;
+            background: center/cover;
+        }
+        ._nick {
+            display: flex;
+            align-items: center;
+            width: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 9 1 auto;
+        }
+    }
+    >div:nth-child(3) {
+        text-align: center;
+        width: 80px;
+        &.ion-load-b {
+            color: var(--user_blue);
+        }
+        &.ion-checkmark-round {
+            color: var(--user_green);
+        }
+        &.ion-close-round {
+            color: var(--user_red);
+        }
+    }
+    >div:nth-child(4) {
+        text-align: center;
+        width: 60px;
+    }
+}
+.TableHelper-content-players,
+.TableHelper-content-contracts {
     margin: 15px 10px !important;
 }
 .TableHelper-content-players-row {

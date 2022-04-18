@@ -3,6 +3,7 @@ import Vue from 'vue';
 import GameState from '../../components/game-state';
 import { debug } from '../../util/debug';
 import ChanceItems from '../../components/chance-items';
+import { ContractInfo } from '../../shared/beans';
 
 class Ticker {
     game_time: string
@@ -13,6 +14,8 @@ class Ticker {
 declare module 'vue/types/vue' {
     interface Vue {
         ticker: Ticker
+        tab: number
+        vm_contract: Vue
     }
 }
 
@@ -56,6 +59,7 @@ export class GameStats {
         this.pool = jQuery('<div class="TablePool-content"><div class="pool-title"><div class="ion-help" />Поле шанс</div></div>').appendTo(this.root).hide();
         this.loadCommonStatsElements();
         this.initExtraStatsTable();
+        this.initContractsTab();
         this.observeTabSwitch();
         window.onresize = (e) => {
             this.renderCommonStats();
@@ -70,6 +74,60 @@ export class GameStats {
                 this.pool.append(this.chanceItems.$mount().$el).show();
             }
         }, { immediate: true });
+    }
+
+    private initContractsTab() {
+        const tab = jQuery('<div class="_contracts">Договоры</div>').appendTo(jQuery('div.TableHelper-tabs', this.jq)).on('click', () => {
+            this.base.tab = 2;
+        });
+        const content = jQuery(`<div><div class="TableHelper-content-contracts">
+            <div class="TableHelper-content-contracts-head">
+                <div>От</div>
+                <div>Кому</div>
+                <div>Результат</div>
+                <div>Время</div>
+            </div>
+        </div></div>`).appendTo(jQuery('div.TableHelper-content', this.jq)).hide();
+        this.state.$watch('contractEvents', (ce: Array<ContractInfo>) => {
+            debug('got contracts', JSON.parse(JSON.stringify(ce)));
+            content.find('div.TableHelper-content-contracts-row').remove();
+            [...ce].reverse().forEach(ci => {
+                jQuery(`<div class="TableHelper-content-contracts-row">
+                    <div>${this.getPlayerInfo(ci.from)}</div>
+                    <div>${this.getPlayerInfo(ci.to)}</div>
+                    <div class="${this.getContractResult(ci.result)}"/>
+                    <div>${window.parsers.parseTimeToString(Math.floor((ci.time - this.state.storage.time.ts_start) / 1000))}</div>
+                </div>`).appendTo(content.find('>div')).on('click', () => {
+                    this.state.ongoingContract = { ...ci };
+                });
+            });
+        }, { deep: true, immediate: true });
+        this.base.$watch('tab', v => {
+            if (v === 2) {
+                tab.addClass('_active');
+                content.show();
+            } else {
+                tab.removeClass('_active');
+                content.hide();
+            }
+        });
+    }
+
+    private getContractResult(res: number) {
+        switch (res) {
+            case 0: return 'ion-load-b';
+            case 1: return 'ion-checkmark-round';
+            case 2: return 'ion-close-round';
+            default: return 'ion-help';
+        }
+    }
+
+    private getPlayerInfo(id: number) {
+        const player = this.state.users[id];
+        return `<div>
+            <div class="_avatar" style="background-image: url('${player.avatar}')" />
+            <div class="_nick">${player.nick}</div>
+        </div>`;
     }
 
     private initExtraStatsTable() {
