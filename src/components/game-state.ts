@@ -284,6 +284,7 @@ export default class GameState extends Vue {
         let teleport: GameEvent = null;
         const roll = current ? this.currentEvents : this.demoEvents;
         packet.msg.status && this.checkRoll(roll, packet);
+        let ctrRes = 0;
         packet.msg.events?.forEach(event => {
             const pl = this.players.find(pl => pl.user_id === event.user_id);
             switch (event.type) {
@@ -364,11 +365,18 @@ export default class GameState extends Vue {
                     }
                     break;
                 case 'contract_accepted':
-                    this.contractEvents[this.contractEvents.length - 1].result = 1;
-                    this.ongoingContract = null;
-                    break;
+                    ctrRes = 1;
                 case 'contract_declined':
-                    this.contractEvents[this.contractEvents.length - 1].result = 2;
+                    ctrRes = ctrRes || 2;
+                    if (this.contractEvents.length) {
+                        this.contractEvents[this.contractEvents.length - 1].result = ctrRes;
+                    } else {
+                        const unwatch = this.$watch('contractEvents', _ => {
+                            const last = this.contractEvents[this.contractEvents.length - 1];
+                            last.result === 0 && (last.result = ctrRes);
+                            unwatch();
+                        }, { deep: true });
+                    }
                     this.ongoingContract = null;
                     break;
 
