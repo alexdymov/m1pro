@@ -9,6 +9,7 @@ import extend from "lodash/extend";
 class GameSettings {
     splitCommonStats = true;
     changeColor = true;
+    showLiveContracts = true;
 }
 
 export class Player {
@@ -355,8 +356,10 @@ export default class GameState extends Vue {
                             if (event.user_id !== this.user.user_id && event.to !== this.user.user_id) {
                                 this.loadDemo(packet.msg.id).then(msgs => {
                                     const contract = msgs.find(msg => msg.id === packet.msg.id);
-                                    this.ongoingContract = { ...contract.status.current_move.contract };
                                     this.contractEvents.push({ ...contract.status.current_move.contract, time: contract.time.ts_now, result: 0 });
+                                    if (this.settings.showLiveContracts) {
+                                        this.ongoingContract = { ...contract.status.current_move.contract };
+                                    }
                                 });
                             } else {
                                 this.ongoingContract = null;

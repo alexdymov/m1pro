@@ -199,6 +199,16 @@ export class GameStats {
                                 `)
                             .find('input').prop('checked', this.state.settings.changeColor).on('change', (e) => {
                                 this.state.settings.changeColor = e.delegateTarget.checked;
+                            }).end(),
+                        jQuery(`
+                                <div class="form2-row">
+                                    <div class="form2-checkbox">
+                                        <input type="checkbox" class="switcher" id="table-opt-show-live-contracts"> <label for="table-opt-show-live-contracts">Показывать чужие договоры (live)</label>
+                                    </div>
+                                </div>
+                                `)
+                            .find('input').prop('checked', this.state.settings.showLiveContracts).on('change', (e) => {
+                                this.state.settings.showLiveContracts = e.delegateTarget.checked;
                             }).end()
                     )
                     break;
