@@ -351,12 +351,16 @@ export default class GameState extends Vue {
                 case 'contract':
                     debug('contract', packet.msg.id, current)
                     if (current) {
-                        if (!this.storage.about.is_m1tv && event.user_id !== this.user.user_id && event.to !== this.user.user_id) {
-                            this.loadDemo(packet.msg.id).then(msgs => {
-                                const contract = msgs.find(msg => msg.id === packet.msg.id);
-                                this.ongoingContract = { ...contract.status.current_move.contract };
-                                this.contractEvents.push({ ...contract.status.current_move.contract, time: contract.time.ts_now, result: 0 });
-                            });
+                        if (!this.storage.about.is_m1tv) {
+                            if (event.user_id !== this.user.user_id && event.to !== this.user.user_id) {
+                                this.loadDemo(packet.msg.id).then(msgs => {
+                                    const contract = msgs.find(msg => msg.id === packet.msg.id);
+                                    this.ongoingContract = { ...contract.status.current_move.contract };
+                                    this.contractEvents.push({ ...contract.status.current_move.contract, time: contract.time.ts_now, result: 0 });
+                                });
+                            } else {
+                                this.ongoingContract = null;
+                            }
                         } else {
                             this.contractEvents.push({ ...packet.msg.status.current_move.contract, time: packet.msg.time.ts_now, result: 0 });
                         }
