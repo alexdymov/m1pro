@@ -177,19 +177,22 @@ export class UserData {
 }
 
 export class GameField {
-    buy: number;
-    coeff_rent: number;
+    buy?: number;
+    coeff_rent?: number;
     field_id: number;
-    group: number;
+    group?: number;
     image: string;
-    levelUpCost: boolean | number;
-    levels: Array<number>;
-    title: string;
-    can_build: boolean;
-    level: number;
+    levelUpCost?: boolean | number;
+    levels?: Array<number>;
+    title?: string;
+    can_build?: boolean;
+    level?: number;
     mortgaged?: boolean;
     owner?: number;
     owner_true?: number;
+    coeffs?: any
+    coeffs_rentmirror?: any
+    mortgage_lose_round?: number
 }
 export class GamePlayer {
     additional_time: number;
@@ -328,7 +331,40 @@ export interface ContractEventData {
     in_money: number
 }
 
+export interface GameStatus {
+    fields: {
+        [key: number]: GameField
+    }
+    players: Array<GamePlayer>
+    round: number
+    viewers: number
+    action_player: number
+    current_move: {
+        wormhole_destinations?: number[]
+        contract: ContractEventData
+    }
+}
+
 export interface ContractInfo extends ContractEventData {
     time: number
     result: number
+    status: GameStatus
+}
+
+export interface ConfigField {
+    type: string
+    group: number
+    title: string
+    image: string
+    is_last: number
+}
+
+export interface ConfigGroup {
+    buy: number
+    buy_last: number
+    levelUpCost: number
+    levels: Array<number>
+    levels_last: Array<number>
+    coeffs: any
+    coeffs_rentmirror: any
 }

@@ -1,6 +1,6 @@
 import Component from "vue-class-component";
 import Vue from 'vue';
-import { AsyncStorage, GameField, GamePlayer, Gender, Rank, UserInfoLong, BanInfo, Friendship, GameEvent, ChanceCard, CurrentChanceCard, ChanceCardState, ContractEventData, ContractInfo } from '../shared/beans';
+import { AsyncStorage, GameField, GamePlayer, Gender, Rank, UserInfoLong, BanInfo, Friendship, GameEvent, ChanceCard, CurrentChanceCard, ChanceCardState, ContractEventData, ContractInfo, GameStatus, ConfigField, ConfigGroup } from '../shared/beans';
 import merge from "lodash/merge";
 import { debug } from '../util/debug';
 import cloneDeep from "lodash/cloneDeep";
@@ -32,20 +32,6 @@ export class Player {
         public order: number,
         public team: number
     ) { }
-}
-
-interface GameStatus {
-    fields: {
-        [key: number]: GameField
-    }
-    players: Array<GamePlayer>
-    round: number
-    viewers: number
-    action_player: number
-    current_move: {
-        wormhole_destinations?: number[]
-        contract: ContractEventData
-    }
 }
 
 interface UpdateAction {
@@ -102,6 +88,9 @@ declare module 'vue/types/vue' {
             WORMHOLE_EXTRA_DESTINATION_COST: number
             LEVEL_CHANGE_NO_MNPL: number
             UNEVEN_LEVEL_CHANGE: number
+            fields: Array<ConfigField>
+            groups: Array<ConfigGroup>
+            version: number
         }
         time: {
             delta: number
@@ -155,7 +144,7 @@ export default class GameState extends Vue {
     demoEvents = new PacketPlayerEvents();
     wormholeDestinations = new Array<number>();
     contractEvents = new Array<ContractInfo>();
-    ongoingContract: ContractEventData = null;
+    ongoingContract: ContractInfo = null;
 
     created() {
         const gameSettings = localStorage.getItem('game_settings');
@@ -356,19 +345,19 @@ export default class GameState extends Vue {
                             if (event.user_id !== this.user.user_id && event.to !== this.user.user_id) {
                                 this.loadDemo(packet.msg.id).then(msgs => {
                                     const contract = msgs.find(msg => msg.id === packet.msg.id);
-                                    this.contractEvents.push({ ...contract.status.current_move.contract, time: contract.time.ts_now, result: 0 });
+                                    this.contractEvents.push({ ...contract.status.current_move.contract, time: contract.time.ts_now, result: 0, status: contract.status });
                                     if (this.settings.showLiveContracts) {
-                                        this.ongoingContract = { ...contract.status.current_move.contract };
+                                        this.ongoingContract = { ...contract.status.current_move.contract, time: contract.time.ts_now, result: 0, status: null };
                                     }
                                 });
                             } else {
                                 this.ongoingContract = null;
                             }
                         } else {
-                            this.contractEvents.push({ ...packet.msg.status.current_move.contract, time: packet.msg.time.ts_now, result: 0 });
+                            this.contractEvents.push({ ...packet.msg.status.current_move.contract, time: packet.msg.time.ts_now, result: 0, status: packet.msg.status });
                         }
                     } else {
-                        this.contractEvents.push({ ...packet.msg.status.current_move.contract, time: packet.msg.time.ts_now, result: 0 });
+                        this.contractEvents.push({ ...packet.msg.status.current_move.contract, time: packet.msg.time.ts_now, result: 0, status: packet.msg.status });
                     }
                     break;
                 case 'contract_accepted':

@@ -14,8 +14,10 @@ export const gameStarter = () => {
     require('../style/game.less');
     require('../style/game/tips.css');
     require('../style/game/remove-k.css');
+    const contract = new TableContract(state);
     vooker.ifBeforeCreate(v => v.$options.name === 'storage', v => state.init(v));
-    vooker.ifMount(jq => jq.is('div.TableContract'), v => new TableContract(v, state));
+    vooker.ifBeforeCreate(v => v.$options.name === 'table-contract', v => contract.init(v));
+    vooker.ifMount(jq => jq.is('div.TableContract'), v => contract.mount());
     vooker.ifMount(jq => jq.is('div.TableAction'), v => new TableAction(v, state));
     vooker.ifBeforeCreate(v => v.$options.name === 'table-helper', v => GameStats.fixTicker(v));
     vooker.ifMount(jq => jq.is('div.TableHelper'), v => new GameStats(v, state));

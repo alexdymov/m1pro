@@ -1,11 +1,16 @@
 import Vue from 'vue';
 import GameState from '../../components/game-state';
 import { debug } from '../../util/debug';
+import { GameField, ContractInfo, GameStatus } from '../../shared/beans';
+import merge from "lodash/merge";
+
+declare type FieldsMock = Vue | { fields_with_equipment: Map<number, GameField> }
 
 declare module 'vue/types/vue' {
     interface Vue {
         contract_ui: Array<{ sum: string }>
         contract: { money_from: number, money_to: number, user_id_from: number, user_id_to: number, field_ids_from: Array<number>, field_ids_to: Array<number> }
+        vm_fields: FieldsMock
         is_m1tv: boolean
         mode: number
     }
@@ -18,14 +23,33 @@ export class TableContract {
     private x2Btn: JQuery<HTMLElement>;
     private payhelp: JQuery<HTMLElement>;
     private diffhelp: JQuery<HTMLElement>;
-    private user = window.API.user.user_id;
+    private user: number;
+    public base: Vue;
 
-    constructor(public base: Vue, private state: GameState) {
-        this.jq = jQuery(base.$el);
-        this.init();
+    constructor(private state: GameState) {
     }
 
-    private init() {
+    public init(base: Vue) {
+        this.base = base;
+        const oldfwe = base.$options.computed.vm_fields;
+        const ref = this;
+        merge(base.$options, {
+            computed: {
+                vm_fields: function () {
+                    const status = ref.state.ongoingContract?.status;
+                    if (status) {
+                        return ref.getFieldsMock(status);
+                    } else {
+                        return oldfwe;
+                    }
+                }
+            }
+        });
+    }
+
+    public mount() {
+        this.user = window.API.user.user_id;
+        this.jq = jQuery(this.base.$el);
         require('../../style/game/table-contract.less');
         this.btnCtr = jQuery('<div class="TableContract-content-buttons"/>').appendTo(this.jq.get(0));
         this.initEqBtn();
@@ -36,7 +60,7 @@ export class TableContract {
             this.checkEq();
             this.checkX2();
         }, { deep: true });
-        this.state.$watch('ongoingContract', ci => {
+        this.state.$watch('ongoingContract', (ci: ContractInfo) => {
             debug('show ongoing contract', JSON.parse(JSON.stringify(ci)))
             if (ci) {
                 this.base.contract = {
@@ -50,6 +74,7 @@ export class TableContract {
                 this.base.mode = 2;
                 this.btnCtr.hide();
                 this.jq.find('div.TableContract-actions').hide();
+                this.diffhelp.hide();
             } else {
                 this.base.contract = {
                     user_id_from: 0,
@@ -61,12 +86,58 @@ export class TableContract {
                 };
                 this.base.mode = 0;
                 this.btnCtr.show();
+                this.diffhelp.show();
                 this.jq.find('div.TableContract-actions').show();
             }
         });
         this.base.$watch('mode', v => {
             v === 0 && (this.state.ongoingContract = null);
         })
+    }
+
+    private getFieldsMock(status: GameStatus): FieldsMock {
+        const fields_with_equipment = new Map<number, GameField>();
+        const config = this.state.storage.config;
+        if (null !== status) {
+            config.fields.forEach((field, id) => {
+                if ("field" !== field.type)
+                    return;
+                const statusField = status.fields[id];
+                const fieldGroup = config.groups[field.group];
+                const fe: GameField = {
+                    field_id: id,
+                    title: field.title,
+                    image: field.image,
+                    group: field.group,
+                    coeff_rent: 1,
+                };
+                if (config.version < 5) {
+                    fe.buy = fieldGroup.buy;
+                    fe.levels = fieldGroup.levels;
+                } else {
+                    if (1 === field.is_last) {
+                        fe.buy = fieldGroup.buy_last;
+                        fe.levels = fieldGroup.levels_last;
+                    } else {
+                        fe.buy = fieldGroup.buy;
+                        fe.levels = fieldGroup.levels;
+                    }
+                }
+                // undefined !== fieldGroup.coeffs && (fe.coeffs = window._libs.fns.cloneJSON(fieldGroup.coeffs));
+                // undefined !== fieldGroup.coeffs_rentmirror && (fe.coeffs_rentmirror = window._libs.fns.cloneJSON(fieldGroup.coeffs_rentmirror));
+                fe.levelUpCost = fieldGroup.levelUpCost;
+                if (undefined !== statusField) {
+                    fe.owner_true = statusField.owner;
+                    fe.level = statusField.level;
+                    fe.mortgaged = statusField.mortgaged;
+                    undefined !== statusField.mortgage_lose_round &&
+                        (fe.mortgage_lose_round = statusField.mortgage_lose_round);
+                }
+                fields_with_equipment.set(id, fe);
+            });
+        }
+        debug('pre got field mocks', fields_with_equipment)
+        return { fields_with_equipment };
     }
 
     private initPaymentHelper() {
