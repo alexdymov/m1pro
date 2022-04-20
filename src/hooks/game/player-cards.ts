@@ -138,7 +138,7 @@ export class PlayerCards {
                 pl.rank?.pts && jQuery('<div class="rank" />')
                     .append($('<div class="_img" />').css('background-image', `url("//m1.dogecdn.wtf/ranks/${pl.rank?.id}.svg")`))
                     .append(`<div class="_pts">${pl.rank?.pts}</div>`),
-                pl.mfp_ban_history && jQuery('<span class="mfp ion-android-sad" />').text(pl.mfp_ban_history.count),
+                pl.mfp_ban_history && jQuery('<span class="mfp" />').text(pl.mfp_ban_history.count),
                 pl.friendship === Friendship.Active && jQuery('<span class="friends ion-ios-people" />'),
                 jQuery('<span class="gender" />').addClass(pl.gender === Gender.Male ? 'ion-male' : 'ion-female'),
             )
