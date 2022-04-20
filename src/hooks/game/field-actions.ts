@@ -37,10 +37,26 @@ export class FieldActions {
         this.state.storage.vms.fields.fields_with_equipment.forEach((field, id) => {
             const ctr = this.fjqs.eq(id);
 
-            const levelupBtn = jQuery('<div class="table-body-board-fields-one-action _levelUp"><div class="ion-plus"/></div>').hide()
+            const levelupBtn = jQuery('<div class="table-body-board-fields-one-action _levelUp"><div class="ion-chevron-up"/></div>').hide()
                 .on('click', this.actionCallHandler('levelUp', this.getField(id)))
                 .on('check', () => { this.checkLevelUpBtn(levelupBtn, this.getField(id)) });
-            const levelDownBtn = jQuery('<div class="table-body-board-fields-one-action _levelDown"><div class="ion-minus"/></div>').hide()
+            const levelupMaxBtn = jQuery('<div class="table-body-board-fields-one-action _levelUpMax"><div class="ion-chevron-up"/><div class="ion-chevron-up"/></div>').hide()
+                .on('click', e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const btn = jQuery(e.delegateTarget);
+                    if (!btn.is('._disabled')) {
+                        this.globalLock = true;
+                        btn.addClass('_disabled');
+                        const perso = this.base.getPersonalizedMonopolyInfo(this.state.user.user_id, field.group);
+                        this.callRepeatAction(e, btn, 'levelUp', this.getField(id), () => {
+                            const field = this.getField(id);
+                            return perso.can_build && field.level < (field.levels.length - 1) && this.isEnoughMoneyToLevelUp(field);
+                        });
+                    }
+                })
+                .on('check', () => { this.checkLevelUpMaxBtn(levelupMaxBtn, this.getField(id)) });
+            const levelDownBtn = jQuery('<div class="table-body-board-fields-one-action _levelDown"><div class="ion-chevron-down"/></div>').hide()
                 .on('click', this.actionCallHandler('levelDown', this.getField(id)))
                 .on('check', () => { this.checkLevelDownBtn(levelDownBtn, this.getField(id)) });
             const mortgageBtn = jQuery('<div class="table-body-board-fields-one-action _mortgage"><div class="ion-android-lock"/></div>').hide()
@@ -68,7 +84,7 @@ export class FieldActions {
                 .on('check', () => { this.checkRemortgageBtn(remortgageBtn, this.getField(id)) });
 
             const label = ctr.find('div.table-body-board-fields-one-label');
-            label.after($('<div class="table-body-board-fields-one-actions"/>').append(levelupBtn, levelDownBtn, mortgageBtn, unmortgageBtn, remortgageBtn));
+            label.after($('<div class="table-body-board-fields-one-actions"/>').append(levelupBtn, levelupMaxBtn, levelDownBtn, mortgageBtn, unmortgageBtn, remortgageBtn));
             const btns = ctr.find('div.table-body-board-fields-one-action');
 
             this.state.$watch(() => {
@@ -219,6 +235,18 @@ export class FieldActions {
         }
     }
 
+    private callRepeatAction(e: JQuery.ClickEvent<HTMLElement, undefined, HTMLElement, HTMLElement>, btn: JQuery<HTMLElement>, action: string, field: GameField, predicate: () => boolean) {
+        if (predicate()) {
+            window.Table.GameAPI.action.call(e, action, { field_id: field.field_id }, (e: any) => {
+                this.callRepeatAction(e, btn, action, field, () => e.code === 0 && predicate());
+            });
+        } else {
+            this.globalLock = false;
+            btn.removeClass('_disabled');
+            this.checkAllFields();
+        }
+    }
+
     private callFieldsDoubleAction(e: JQuery.ClickEvent<HTMLElement, undefined, HTMLElement, HTMLElement>, btn: JQuery<HTMLElement>, action: string, action2: string, fields: Array<GameField>) {
         const field = fields.pop();
         if (field) {
@@ -358,6 +386,31 @@ export class FieldActions {
         // debug('check lvldown', field_id, show, perso, this.state.storage.action_types)
         if (show) {
             btn.show();
+        } else {
+            btn.hide();
+        }
+    }
+
+    private checkLevelUpMaxBtn(btn: JQuery<HTMLElement>, field: GameField) {
+        const perso = this.base.getPersonalizedMonopolyInfo(this.state.user.user_id, field.group);
+        const show = this.isBasicChecks(field) &&
+            this.state.storage.config.UNLIMITED_LEVEL_CHANGE === 2 &&
+            this.state.storage.status.round === 2 &&
+            this.state.storage.action_types.has('levelUp') &&
+            !field.mortgaged &&
+            field.levelUpCost !== false &&
+            field.level < (field.levels.length - 1) &&
+            perso.can_build &&
+            this.isUnevenCase(field, perso) &&
+            !this.isAlreadyLeveledUpOnMove(field);
+        // debug('check lvlup max', field_id, show, perso, this.state.storage.action_types) 
+        if (show) {
+            btn.show();
+            if (this.isEnoughMoneyToLevelUp(field)) {
+                btn.removeClass('_disabled');
+            } else {
+                btn.addClass('_disabled');
+            }
         } else {
             btn.hide();
         }

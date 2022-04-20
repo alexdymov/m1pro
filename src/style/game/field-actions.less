@@ -70,7 +70,14 @@
     justify-content: center;
     flex: 1 1 100%;
 
-    &._levelUp, &._unmortgage {
+    &._levelUpMax {
+        flex-direction: column;
+         div:nth-child(2) {
+            margin-top: -10px;
+        }
+    }
+
+    &._levelUp, &._levelUpMax, &._unmortgage {
         background-color: #a0d468;
     }
     &._levelDown, &._mortgage {

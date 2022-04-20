@@ -88,6 +88,7 @@ declare module 'vue/types/vue' {
             WORMHOLE_EXTRA_DESTINATION_COST: number
             LEVEL_CHANGE_NO_MNPL: number
             UNEVEN_LEVEL_CHANGE: number
+            UNLIMITED_LEVEL_CHANGE: number
             fields: Array<ConfigField>
             groups: Array<ConfigGroup>
             version: number
