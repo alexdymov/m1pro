@@ -33,6 +33,7 @@
     "vue-class-component": "^7.2.6"
   },
   "devDependencies": {
+    "async": ">=2.6.4",
     "jpeg-js": ">=0.4.0",
     "json-schema": ">=0.4.0",
     "nth-check": ">=2.0.1",
