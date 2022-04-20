@@ -318,6 +318,7 @@ export interface ChanceCardState extends ChanceCard {
 export class CurrentChanceCard {
     constructor(public fieldId: number,
         public card: ChanceCard,
+        public user: number,
         public sum?: number) {
     }
 }

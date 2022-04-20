@@ -42,7 +42,7 @@ export class ShowChanceCard {
                         back.append(`<span class="profit_pos ion-social-usd _text">+${card.sum}</span>`);
                         break;
                     case 'birthday':
-                        back.append(`<span class="profit_pos ion-social-usd _text">+${card.sum * (this.state.storage.status.players.filter(pl => pl.status !== -1).length - 1)}</span>`);
+                        back.append(`<span class="profit_pos ion-social-usd _text">+${this.getActualBirthdaySum(card.sum, card.user)}</span>`);
                         break;
                     case 'cash_out':
                         back.append(`<span class="profit_neg ion-social-usd _text">-${card.sum}</span>`);
@@ -78,5 +78,12 @@ export class ShowChanceCard {
                 }, 600);
             }
         })
+    }
+
+    private getActualBirthdaySum(sum: number, user: number) {
+        return this.state.storage.status.players
+            .filter(pl => pl.status !== -1 && pl.user_id !== user)
+            .map(pl => pl.money)
+            .reduce((a, b) => a + (b >= sum ? sum : b), 0);
     }
 }

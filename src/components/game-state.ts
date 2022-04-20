@@ -383,7 +383,7 @@ export default class GameState extends Vue {
                     const chanceCard = this.storage.config.chance_cards[event.chance_id];
 
                     if (current) {
-                        this.currentChanceCards.push(new CurrentChanceCard(teleport ? teleport.mean_position : this.currentEvents.getLastPosition(), chanceCard, event.money ?? event.sum));
+                        this.currentChanceCards.push(new CurrentChanceCard(teleport ? teleport.mean_position : this.currentEvents.getLastPosition(), chanceCard, event.user_id, event.money ?? event.sum));
                         if (chanceCard.type === 'teleport') {
                             teleport = event;
                         }
