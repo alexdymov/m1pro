@@ -145,6 +145,7 @@ export default class GameState extends Vue {
     wormholeDestinations = new Array<number>();
     contractEvents = new Array<ContractInfo>();
     ongoingContract: ContractInfo = null;
+    vmfields: Vue;
 
     created() {
         const gameSettings = localStorage.getItem('game_settings');
@@ -352,6 +353,7 @@ export default class GameState extends Vue {
                                 });
                             } else {
                                 this.ongoingContract = null;
+                                this.contractEvents.push({ ...packet.msg.status.current_move.contract, time: packet.msg.time.ts_now, result: 0, status: packet.msg.status });
                             }
                         } else {
                             this.contractEvents.push({ ...packet.msg.status.current_move.contract, time: packet.msg.time.ts_now, result: 0, status: packet.msg.status });

@@ -31,7 +31,6 @@ export class TableContract {
 
     public init(base: Vue) {
         this.base = base;
-        const oldfwe = base.$options.computed.vm_fields;
         const ref = this;
         merge(base.$options, {
             computed: {
@@ -40,7 +39,7 @@ export class TableContract {
                     if (status) {
                         return ref.getFieldsMock(status);
                     } else {
-                        return oldfwe;
+                        return ref.state.vmfields;
                     }
                 }
             }

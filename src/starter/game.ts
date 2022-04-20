@@ -22,6 +22,7 @@ export const gameStarter = () => {
     vooker.ifBeforeCreate(v => v.$options.name === 'table-helper', v => GameStats.fixTicker(v));
     vooker.ifMount(jq => jq.is('div.TableHelper'), v => new GameStats(v, state));
     vooker.ifMount(jq => jq.is('#ui-fields'), v => {
+        state.vmfields = v;
         new PlayerColors(state);
         new PlayerCards(state);
         new PlayerCardMenu(state);
