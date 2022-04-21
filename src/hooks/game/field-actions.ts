@@ -380,10 +380,9 @@ export class FieldActions {
         const show = this.isBasicChecks(field) &&
             this.state.storage.action_types.has('levelDown') &&
             !field.mortgaged &&
-            field.level != 0 &&
-            perso.can_build &&
-            this.isUnevenCase(field, perso);
-        // debug('check lvldown', field_id, show, perso, this.state.storage.action_types)
+            field.level > 0 &&
+            (this.isUnevenCase(field, perso) || perso.level_min !== field.level);
+        debug('check lvldown', field.field_id, show, perso, this.state.storage.action_types)
         if (show) {
             btn.show();
         } else {
@@ -401,7 +400,7 @@ export class FieldActions {
             field.levelUpCost !== false &&
             field.level < (field.levels.length - 1) &&
             perso.can_build &&
-            this.isUnevenCase(field, perso) &&
+            (this.isUnevenCase(field, perso) || perso.level_max !== field.level) &&
             !this.isAlreadyLeveledUpOnMove(field);
         // debug('check lvlup max', field_id, show, perso, this.state.storage.action_types) 
         if (show) {
@@ -424,7 +423,7 @@ export class FieldActions {
             field.levelUpCost !== false &&
             field.level < (field.levels.length - 1) &&
             perso.can_build &&
-            this.isUnevenCase(field, perso) &&
+            (this.isUnevenCase(field, perso) || perso.level_max !== field.level) &&
             !this.isAlreadyLeveledUpOnMove(field);
         // debug('check lvlup', field_id, show, perso, this.state.storage.action_types)
         if (show) {
@@ -477,7 +476,6 @@ export class FieldActions {
         const uneven = 1 === this.state.storage.config.UNEVEN_LEVEL_CHANGE;
         const is_can_build_no_mnpl = 1 === this.state.storage.config.LEVEL_CHANGE_NO_MNPL;
         return uneven || is_can_build_no_mnpl ||
-            perso.level_max !== field.level ||
             perso.level_min === perso.level_max;
     }
 
