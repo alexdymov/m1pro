@@ -7,8 +7,11 @@ span.block-hide {
     }
 }
 .block {
-    &._opened > div:not(.title) {
+    &._opened > div:not(.title):not(.VueGamesSeasonpass-rewards) {
         display: block;
+    }
+    &._opened > div.VueGamesSeasonpass-rewards {
+        display: flex;
     }
     &._closed > div:not(.title) {
         display: none;
