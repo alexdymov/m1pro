@@ -38,6 +38,10 @@ const ChanceItemsProps = Vue.extend({
         },
         players: {
             type: Function
+        },
+        party: {
+            type: Boolean,
+            default: false
         }
     }
 });
@@ -199,7 +203,7 @@ export default class ChanceItems extends ChanceItemsProps {
     }
 
     private getBirthdaySum(card: ChanceCard): number {
-        return card.sum * (this.players().filter((pl: GamePlayer) => pl.status !== -1).length - 1);
+        return card.sum * (this.players().filter((pl: GamePlayer) => pl.status !== -1).length - (this.party ? 2 : 1));
     }
 
     get playerStatuses() {

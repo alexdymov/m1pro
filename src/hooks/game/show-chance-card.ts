@@ -81,9 +81,8 @@ export class ShowChanceCard {
     }
 
     private getActualBirthdaySum(sum: number, user: number) {
-        return this.state.storage.status.players
-            .filter(pl => pl.status !== -1 && pl.user_id !== user)
-            .map(pl => pl.money)
-            .reduce((a, b) => a + (b >= sum ? sum : b), 0);
+        return this.state.getBirthdayPayers(this.state.players.find(pl => pl.user_id === user))
+            .map(({ spl }) => spl.money)
+            .reduce((a, b) => a + Math.min(b, sum), 0);
     }
 }

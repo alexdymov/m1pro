@@ -495,15 +495,18 @@ export default class GameState extends Vue {
     }
 
     private getBirthdayMoneyFor(bpl: Player, sum: number): number {
-        const playersToPay = this.players
-            .map(pl => ({ pl, spl: this.storage.status.players.find(sp => sp.user_id === pl.user_id) }))
-            .filter(({ spl }) => spl.status !== -1)
-            .filter(({ pl }) => this.party ? pl.team !== bpl.team : pl.user_id !== bpl.user_id);
-        return playersToPay.map(({ pl, spl }) => {
+        return this.getBirthdayPayers(bpl).map(({ pl, spl }) => {
             const expense = Math.min(spl.money, sum);
             pl.expenses += expense;
             return expense;
         }).reduce((a, b) => a + b, 0);
+    }
+
+    public getBirthdayPayers(bpl: Player) {
+        return this.players
+            .map(pl => ({ pl, spl: this.storage.status.players.find(sp => sp.user_id === pl.user_id) }))
+            .filter(({ spl }) => spl.status !== -1)
+            .filter(({ pl }) => this.party ? pl.team !== bpl.team : pl.user_id !== bpl.user_id);
     }
 
     load() {

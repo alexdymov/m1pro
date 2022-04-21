@@ -70,7 +70,7 @@ export class GameStats {
         this.state.$watch('chancePool', v => {
             debug('stats pool', JSON.parse(JSON.stringify(v)))
             if (!this.chanceItems && v) {
-                this.chanceItems = new ChanceItems({ propsData: { chanceCards: v, chanceCardsInit: this.state.storage.config.chance_cards, players: () => this.state.storage.status.players } });
+                this.chanceItems = new ChanceItems({ propsData: { chanceCards: v, chanceCardsInit: this.state.storage.config.chance_cards, players: () => this.state.storage.status.players, party: this.state.party } });
                 this.pool.append(this.chanceItems.$mount().$el).show();
             }
         }, { immediate: true });
