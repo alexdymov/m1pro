@@ -24,15 +24,16 @@ export class Item {
 
         const mark = jQuery('<div class="_flex _mark ion-ios-cart" />');
         this.jq.find('div._left').find('div._mark.ion-ios-cart').remove().end().append(mark);
-        this.state.getItemPrice(item.item_proto_id ?? item.thing_prototype_id).then(price => mark.append(`<span>${price}</span>`));
-
-        if (item.user_id === window.API.user.user_id) {
-            this.state.lots.things.some(lot => {
-                if (lot.thing_prototype_id === (item.item_proto_id ?? item.thing_prototype_id)) {
-                    mark.css('color', 'green');
-                    return true;
-                }
-            });
-        }
+        this.base.$watch('item', it => {
+            this.state.getItemPrice(it.item_proto_id ?? it.thing_prototype_id).then(price => mark.children().remove().end().append(`<span>${price}</span>`));
+            if (item.user_id === window.API.user.user_id) {
+                this.state.lots.things.some(lot => {
+                    if (lot.thing_prototype_id === (item.item_proto_id ?? item.thing_prototype_id)) {
+                        mark.css('color', 'green');
+                        return true;
+                    }
+                });
+            }
+        }, { immediate: true });
     }
 }
