@@ -1,12 +1,17 @@
 .table-body-stats {
     margin-left: 10px;
     margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+
+    .spacer {
+        flex-grow: 1;
+    }
 
     .TableHelper-content {
         background-color: #161a1b;
         white-space: nowrap;
         width: 175px;
-        height: 250px;
         flex-grow: unset !important;
         padding: 10px;
 
@@ -15,7 +20,7 @@
         }
 
         ._matchtitle {
-            margin-bottom: 10px !important;
+            margin: 0 0 10px 0 !important;
             flex-direction: row;
             flex-wrap: wrap;
             font-size: 13px;
@@ -41,7 +46,7 @@
         background-color: #161a1b;
         white-space: nowrap;
         padding: 10px;
-        margin-top: 195px;
+        margin-bottom: 20px;
 
         .pool-title {
             display: flex;
@@ -132,6 +137,9 @@
 .TableHelper {
     width: 470px !important;
     left: 110px !important;
+}
+.TableHelper-content-options {
+    width: 295px;
 }
 .TableHelper-content-contracts {
     height: 300px;

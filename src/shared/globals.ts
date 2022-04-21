@@ -34,6 +34,9 @@ declare global {
             getAssetsWorth: (e: any) => number
             getGameTime: () => number
         }
+        Tools: {
+            selectWordCase: (e: number, t: string[]) => any
+        }
         PageNavigation: {
             openInNewTab: (url: string) => void
         }

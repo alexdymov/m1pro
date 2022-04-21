@@ -66,6 +66,9 @@ declare module 'vue/types/vue' {
     interface Vue {
         flags: {
             game_2x2: boolean
+            match_title: string
+            game_submode: number
+            game_mode: number
         }
         about: {
             is_m1tv: boolean
@@ -92,6 +95,9 @@ declare module 'vue/types/vue' {
             fields: Array<ConfigField>
             groups: Array<ConfigGroup>
             version: number
+            roundCash: number
+            roundTaxes: [{ game_time: number, tax: number }]
+            incomeTaxes: [{ game_time: number, tax_rate: number }]
         }
         time: {
             delta: number
@@ -105,6 +111,8 @@ declare module 'vue/types/vue' {
         api_user: any
         is_ready: boolean
         field_id_jail: number
+        game_mode_titles: string[]
+        game_submode_titles: string[]
     }
 }
 
