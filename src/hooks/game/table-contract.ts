@@ -20,7 +20,8 @@ export class TableContract {
     private jq: JQuery<Element>;
     private btnCtr: JQuery<HTMLElement>;
     private eqBtn: JQuery<HTMLElement>;
-    private x2Btn: JQuery<HTMLElement>;
+    private x2BtnFrom: JQuery<HTMLElement>;
+    private x2BtnTo: JQuery<HTMLElement>;
     private payhelp: JQuery<HTMLElement>;
     private diffhelp: JQuery<HTMLElement>;
     private user: number;
@@ -194,14 +195,19 @@ export class TableContract {
     }
 
     private checkX2() {
-        const [left, right] = this.getSumsX2();
+        const [left, right] = this.getSums();
         const outgoing = this.base.contract.user_id_from === this.user;
         const team = this.state.players.find(pl => pl.user_id === this.user).team;
         const toTeammate = this.state.party && this.state.players.find(pl => pl.user_id === this.base.contract.user_id_to).team === team;
-        if (!this.base.is_m1tv && (left * 2) !== right && outgoing && !toTeammate) {
-            this.x2Btn.show();
-        } else {
-            this.x2Btn.hide();
+        this.x2BtnFrom.hide();
+        this.x2BtnTo.hide();
+        if (!this.base.is_m1tv && !toTeammate && outgoing) {
+            if ((left * 2) !== right) {
+                this.x2BtnTo.show();
+            }
+            if (left !== (right * 2)) {
+                this.x2BtnFrom.show();
+            }
         }
     }
 
@@ -222,13 +228,26 @@ export class TableContract {
     }
 
     private initX2Btn() {
-        this.x2Btn = jQuery('<div class="_button">x2</div>').hide().appendTo(this.btnCtr)
+        this.x2BtnFrom = jQuery('<div class="_button ion-chevron-left">x2</div>').hide().appendTo(this.btnCtr)
             .on('click', () => {
                 if (this.base.contract.money_from || this.base.contract.money_to) {
                     this.base.contract.money_from = this.base.contract.money_to = 0;
                 }
-                const [left, right] = this.getSumsX2();
-                const diff = left - right;
+                const [left, right] = this.getSums();
+                const diff = left - right * 2;
+                if (diff > 0) {
+                    this.base.contract.money_to += diff;
+                } else {
+                    this.base.contract.money_from += Math.abs(diff);
+                }
+            });
+        this.x2BtnTo = jQuery('<div class="_button ion-chevron-right">x2</div>').hide().appendTo(this.btnCtr)
+            .on('click', () => {
+                if (this.base.contract.money_from || this.base.contract.money_to) {
+                    this.base.contract.money_from = this.base.contract.money_to = 0;
+                }
+                const [left, right] = this.getSums();
+                const diff = left * 2 - right;
                 if (diff > 0) {
                     this.base.contract.money_to += diff;
                 } else {
@@ -239,9 +258,5 @@ export class TableContract {
 
     private getSums(): number[] {
         return this.base.contract_ui.map(ui => Number(ui.sum.replace(new RegExp(/,/, 'g'), '')));
-    }
-
-    private getSumsX2(): number[] {
-        return this.base.contract_ui.map(ui => Number(ui.sum.replace(new RegExp(/,/, 'g'), '')) * 2);
     }
 }
