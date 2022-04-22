@@ -382,7 +382,7 @@ export class FieldActions {
             !field.mortgaged &&
             field.level > 0 &&
             (this.isUnevenCase(field, perso) || perso.level_min !== field.level);
-        debug('check lvldown', field.field_id, show, perso, this.state.storage.action_types)
+        // debug('check lvldown', field.field_id, show, perso, this.state.storage.action_types)
         if (show) {
             btn.show();
         } else {
