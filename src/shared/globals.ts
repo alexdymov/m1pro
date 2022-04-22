@@ -20,6 +20,7 @@ declare global {
             user: UserInfoLong
             isUserSignedIn: () => boolean
             createAsyncStorage: (prm: { is_short: boolean }) => AsyncStorage
+            callMethod: (name: string, data: object, fn: any, a: any) => any
         }
         Table: {
             users_data: {

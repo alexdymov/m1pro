@@ -10,9 +10,10 @@
 
 .profile-body-side {
     position: absolute;
-    top: -40px;
+    top: 0px;
     right: 0px;
-    width: 385px;
+    width: 360px;
+    z-index: 2;
 }
 
 .profile-body-level, .profile-body-ingame, .profile-body-mfp {
@@ -20,6 +21,17 @@
 }
 .profile-body {
     grid-template-columns: unset !important;
+}
+.profile-top-stat-list {
+    flex-wrap: wrap !important;
+    width: 400px !important;
+}
+.profile-top-stat-list-one-break {
+    flex-basis: 100%;
+    height: 0px;
+}
+.profile-top-stat-list-one._friends {
+    margin: 10px 0 0 0 !important;
 }
 .profile-body-posts-list .title {
     grid-column: 1 / -1;
@@ -29,7 +41,8 @@
     margin: 0 !important;
 }
 .profile-top-stat-badge {
-    bottom: -70px !important;
+    bottom: 60px !important;
+    right: 375px !important;
 }
 .profile-body-inventory-list {
     max-width: 102px;

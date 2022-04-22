@@ -1,32 +1,48 @@
-import { InventoryData, InventoryGetReq, MarketLotThing, MResp } from "../shared/beans";
-import mutator from "../util/mutator";
+import { InventoryData, InventoryGetReq, MarketLotThing, MResp, UserInfoLong } from '../shared/beans';
 import { debug } from '../util/debug';
+import { propWaitWindow } from '../util/prop-def';
+import MainState from '../components/main-state';
+
+interface ExecuteProfile {
+    result: {
+        user: UserInfoLong
+        inventory: {
+            count: number
+        }
+    }
+}
 
 export class Profile {
     private action: JQueryDeferred<InventoryData>;
 
-    constructor() {
+    constructor(private state: MainState) {
         require('../style/main/profile.less');
-        setTimeout(() => {
+        state.onCallMethod("execute.profile", (v: any) => {
             this.action = jQuery.Deferred<InventoryData>();
-            this.init();
-        }, 1);
+            this.init(v);
+            return true;
+        });
     }
 
-    private init() {
+    private init(profile: ExecuteProfile) {
         jQuery('div.profile-top-info-main').append(jQuery('div.profile-body-side').detach());
 
-        const uid = location.pathname.match(/\/profile\/([\da-z_.]+)/)[1];
-        this.loadInventoryItems(uid);
+        this.initPage(profile.result.user);
+        this.loadInventoryItems(profile.result.user.user_id);
 
-        let def = 0;
-        const ctr = jQuery('div.profile-body-inventory-list');
-        mutator.mutateAdded(ctr, jq => {
-            def++;
-            if (def === 6) {
-                this.reloadItems(ctr);
-            }
-        });
+        if (profile.result.inventory.count > 6) {
+            const ctr = jQuery('div.profile-body-inventory-list');
+            this.reloadItems(ctr);
+        }
+    }
+
+    private initPage(user: UserInfoLong) {
+        const list = jQuery('div.profile-top-stat-list');
+        debug('list', list.find('div.profile-top-stat-list-one').eq(1))
+        const winrate = jQuery('<div class="profile-top-stat-list-one"><div class="_val"></div><div class="_key">% побед</div></div>')
+        list.find('div.profile-top-stat-list-one').eq(1).after('<div class="profile-top-stat-list-one-break"/>').after(winrate);
+        const wr = user.games > 0 ? Math.round((user.games_wins / user.games) * 100) : 0;
+        winrate.find('div._val').text(`${wr}%`);
     }
 
     private reloadItems(ctr: JQuery<HTMLElement>) {
@@ -52,7 +68,7 @@ export class Profile {
             .appendTo(ctr);
     }
 
-    loadInventoryItems(user_id: string) {
+    loadInventoryItems(user_id: number) {
         $.post('/api/inventory.get', new InventoryGetReq(user_id))
             .then((res: MResp<InventoryData>) => {
                 if (res.code) {

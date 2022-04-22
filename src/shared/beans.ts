@@ -34,7 +34,7 @@ export class FriendsGetReq extends MReq {
 }
 
 export class InventoryGetReq extends MReq {
-    constructor(public user_id?: number | string, public order: string = "quality") {
+    constructor(public user_id?: number | string, public count = 50, public order: string = "quality") {
         super();
     }
 }

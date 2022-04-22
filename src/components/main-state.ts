@@ -28,6 +28,7 @@ export default class MainState extends Vue {
     lastSeen = localStorage.getItem('last_pro_version_seen') || '0';
     gamesNewSettings: GamesNewSettings = null;
     ver = VERSION;
+    private listeners = new Map<String, (data: any) => boolean>();
 
     created() {
         const localSettings = localStorage.getItem('games_new_settings');
@@ -38,11 +39,45 @@ export default class MainState extends Vue {
         if (window.API && window.API.isUserSignedIn()) {
             this.loadLots();
         } else {
-            propWaitWindow('API').then(v => this.loadLots());
+            propWaitWindow('API').then(v => {
+                const oldCallMethod = window.API.callMethod;
+                window.API.callMethod = (name, ...other) => {
+                    let fn: Function,
+                        data = {},
+                        a = {};
+                    switch (typeof other[0]) {
+                        case "function":
+                            [fn, a] = other;
+                            break;
+                        case "object":
+                            [data, fn, a] = other;
+                            break;
+                        case "undefined":
+                            break;
+                        default:
+                            throw new Error("Invalid params given.");
+                    }
+                    return oldCallMethod.call(window.API, name, data, (...data: any[]) => {
+                        fn && fn.apply(null, data);
+                        this.listeners.forEach((v, k) => {
+                            if (k === name) {
+                                if (v.apply(null, data)) {
+                                    this.listeners.delete(name);
+                                }
+                            }
+                        })
+                    }, a);
+                }
+                this.loadLots();
+            });
         }
         setInterval(() => {
             this.loadLots();
         }, 60 * 1000);
+    }
+
+    onCallMethod(name: string, fn: (data: any) => boolean) {
+        this.listeners.set(name, fn);
     }
 
     changeSeen() {

@@ -12,7 +12,7 @@ export const mainStarter = () => {
     debug('M1Pro main boot');
     Vue.use(vooker);
     const state = new MainState();
-    pooker.add(page => page.pathname.startsWith('/profile'), () => new Profile());
+    pooker.add(page => page.pathname.startsWith('/profile'), () => new Profile(state));
     pooker.add(page => page.pathname.startsWith('/wallet'), () => require('../style/main/wallet.css'));
     pooker.add(page => page.pathname.startsWith('/market'), () => require('../style/main/market.less'));
     pooker.add(page => page.pathname.startsWith('/m1tv'), () => require('../style/main/m1tv.less'));
