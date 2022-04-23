@@ -8,7 +8,7 @@ Enhance UI/UX for https://monopoly-one.com
 
 После установки необходимо обновить страницу игры.
 
-### <img alt="Chrome" src="https://img.icons8.com/fluent/24/000000/chrome.png" align="center"/> Chrome
+### <img alt="Chrome" src="https://img.icons8.com/fluent/24/000000/chrome.png" align="center"/> Chrome / <img alt="Microsoft Edge" src="https://img.icons8.com/fluent/24/000000/ms-edge-new.png" align="center"/> Microsoft Edge / <img alt="Yandex Browser" src="https://img.icons8.com/plasticine/32/000000/yandex-browser.png" align="center"/> Yandex Browser / <img alt="Opera" src="https://img.icons8.com/fluent/24/000000/opera.png" align="center"/> Opera
 ![Chrome Web Store](https://img.shields.io/chrome-web-store/v/agapnbihododcdnknlbogoajfajllgjd)
 ![Chrome Web Store](https://img.shields.io/chrome-web-store/users/agapnbihododcdnknlbogoajfajllgjd)
 ![Chrome Web Store](https://img.shields.io/chrome-web-store/rating/agapnbihododcdnknlbogoajfajllgjd)
@@ -23,7 +23,7 @@ Enhance UI/UX for https://monopoly-one.com
 Установить из [Firefox browser Add-ons](https://addons.mozilla.org/en-US/firefox/addon/m1pro/)
 
 ### <img alt="UserScript, etc." src="https://img.icons8.com/color/24/000000/javascript--v1.png" align="center"/>UserScript и другие
-Поддержка UserScript есть, но публикация не настроена, так как варианты с расширениями проще и более распространены. Если вы хотите использовать расширение через UserScript или, например, в <img alt="Microsoft Edge" src="https://img.icons8.com/fluent/24/000000/ms-edge-new.png" align="center"/> Microsoft Edge, то попросите и я опубликую.
+Поддержка UserScript есть, но публикация не настроена, так как варианты с расширениями проще и более распространены. Если вы хотите использовать расширение через UserScript или, например, в других браузерах, то попросите и я опубликую.
 
 ## Возможности
 
