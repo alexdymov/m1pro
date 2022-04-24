@@ -9,6 +9,7 @@ Enhance UI/UX for https://monopoly-one.com
 После установки необходимо обновить страницу игры.
 
 <img alt="Chrome" src="https://img.icons8.com/fluent/24/000000/chrome.png" align="center"/> Chrome (для ПК) / <img alt="Microsoft Edge" src="https://img.icons8.com/fluent/24/000000/ms-edge-new.png" align="center"/> Microsoft Edge (для ПК) / <img alt="Yandex Browser" src="https://img.icons8.com/plasticine/32/000000/yandex-browser.png" align="center"/> Yandex Browser (для ПК и Android) / <img alt="Opera GX" src="https://img.icons8.com/fluent/24/000000/opera.png" align="center"/> Opera (для ПК) / <img alt="Opera" src="https://img.icons8.com/fluent/24/000000/opera-gx.png" align="center"/> Opera GX (для ПК, нужно установить [дополнительное расширение](https://addons.opera.com/ru/extensions/details/install-chrome-extensions/))
+
 ![Chrome Web Store](https://img.shields.io/chrome-web-store/v/agapnbihododcdnknlbogoajfajllgjd)
 ![Chrome Web Store](https://img.shields.io/chrome-web-store/users/agapnbihododcdnknlbogoajfajllgjd)
 ![Chrome Web Store](https://img.shields.io/chrome-web-store/rating/agapnbihododcdnknlbogoajfajllgjd)
@@ -16,6 +17,7 @@ Enhance UI/UX for https://monopoly-one.com
 Установить из [Chrome Web Store](https://chrome.google.com/webstore/detail/m1pro/agapnbihododcdnknlbogoajfajllgjd)
 
 <img alt="Firefox" src="https://raw.githubusercontent.com/softvar/enhanced-github/master/screenshots/firefox.png" align="center"/> Firefox (для ПК)
+
 ![Mozilla Add-on](https://img.shields.io/amo/v/m1pro)
 ![Mozilla Add-on](https://img.shields.io/amo/users/m1pro)
 ![Mozilla Add-on](https://img.shields.io/amo/rating/m1pro)
