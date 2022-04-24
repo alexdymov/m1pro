@@ -33,23 +33,25 @@ function createConfig(options) {
     const empty = rpath.resolve(__dirname, './empty.cjs');
     const path = dist;
 
+    plugins.push(new WrapperPlugin({
+      test: new RegExp(`${filename}$`),
+      header: `
+        Object.defineProperty(window, "Vue", {
+          configurable: true,
+            set(v) {
+              Object.defineProperty(window, "Vue", { configurable: true, enumerable: true, writable: true, value: v });
+              `,
+      footer: `
+            }
+        });`
+    }));
+
     if (options.prod) {
       tcfg = { entry, output: { filename, path } };
     } else {
       plugins.push(new LiveReloadPlugin({ delay: 500 }));
       metadata.require.push(`file://${dist}/${filename}`);
-      plugins.push(new WrapperPlugin({
-        test: /index\.prod\.user\.js$/,
-        header: `
-          Object.defineProperty(window, "Vue", {
-            configurable: true,
-              set(v) {
-                Object.defineProperty(window, "Vue", { configurable: true, enumerable: true, writable: true, value: v });
-                `,
-        footer: `
-              }
-            });`
-      }));
+      metadata.name += '-dev'
       tcfg = {
         entry: { prod: entry, dev: empty },
         output: { filename: 'index.[name].user.js', path, publicPath: '' }
