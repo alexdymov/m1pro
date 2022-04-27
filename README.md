@@ -3,6 +3,8 @@ Enhance UI/UX for https://monopoly-one.com
 
 Вспомогательное расширение для игры Monopoly One.
 
+[![Discord](https://img.shields.io/badge/Discord-7289DA?style=flat&logo=discord&logoColor=white)](https://discord.gg/YFzfEBcCKA) ![Online](https://img.shields.io/discord/967411212369416192)
+
 ## Установка
 Примечание: если у вас уже установлено расширение <img alt="M1 Plus" width="24" src="https://raw.githubusercontent.com/dtalkachou/m1-plus/master/assets/img/icon32.png" align="center"/> M1 Plus, то его нужно отключить, так как m1pro включает все функции M1 Plus и даже больше!
 
