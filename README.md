@@ -5,26 +5,37 @@ Enhance UI/UX for https://monopoly-one.com
 
 [![Discord](https://img.shields.io/badge/Discord-7289DA?style=flat&logo=discord&logoColor=white)](https://discord.gg/YFzfEBcCKA) ![Online](https://img.shields.io/discord/967411212369416192)
 
-## Установка
-Примечание: если у вас уже установлено расширение <img alt="M1 Plus" width="24" src="https://raw.githubusercontent.com/dtalkachou/m1-plus/master/assets/img/icon32.png" align="center"/> M1 Plus, то его нужно отключить, так как m1pro включает все функции M1 Plus и даже больше!
-
-После установки необходимо обновить страницу игры.
-
-<img alt="Chrome" src="https://img.icons8.com/fluent/24/000000/chrome.png" align="center"/> Chrome (для ПК) / <img alt="Microsoft Edge" src="https://img.icons8.com/fluent/24/000000/ms-edge-new.png" align="center"/> Microsoft Edge (для ПК) / <img alt="Yandex Browser" src="https://img.icons8.com/plasticine/32/000000/yandex-browser.png" align="center"/> Yandex Browser (для ПК и Android) / <img alt="Opera GX" src="https://img.icons8.com/fluent/24/000000/opera.png" align="center"/> Opera (для ПК) / <img alt="Opera" src="https://img.icons8.com/fluent/24/000000/opera-gx.png" align="center"/> Opera GX (для ПК, нужно установить [дополнительное расширение](https://addons.opera.com/ru/extensions/details/install-chrome-extensions/))
-
 ![Chrome Web Store](https://img.shields.io/chrome-web-store/v/agapnbihododcdnknlbogoajfajllgjd)
 ![Chrome Web Store](https://img.shields.io/chrome-web-store/users/agapnbihododcdnknlbogoajfajllgjd)
 ![Chrome Web Store](https://img.shields.io/chrome-web-store/rating/agapnbihododcdnknlbogoajfajllgjd)
-
-Установить из [Chrome Web Store](https://chrome.google.com/webstore/detail/m1pro/agapnbihododcdnknlbogoajfajllgjd)
-
-<img alt="Firefox" src="https://raw.githubusercontent.com/softvar/enhanced-github/master/screenshots/firefox.png" align="center"/> Firefox (для ПК)
 
 ![Mozilla Add-on](https://img.shields.io/amo/v/m1pro)
 ![Mozilla Add-on](https://img.shields.io/amo/users/m1pro)
 ![Mozilla Add-on](https://img.shields.io/amo/rating/m1pro)
 
+## Установка
+Примечание: если у вас уже установлено расширение <img alt="M1 Plus" width="24" src="https://raw.githubusercontent.com/dtalkachou/m1-plus/master/assets/img/icon32.png" align="center"/> M1 Plus, то его нужно отключить, так как m1pro включает все функции M1 Plus и даже больше!
+
+После установки необходимо обновить страницу игры.
+
+### <img alt="Android" src="https://img.icons8.com/color/24/000000/monitor--v1.png" align="center"/> Для ПК
+&nbsp;&nbsp;&nbsp;&nbsp;<img alt="Chrome" src="https://img.icons8.com/fluent/24/000000/chrome.png" align="center"/>&nbsp;&nbsp;Chrome\
+&nbsp;&nbsp;&nbsp;&nbsp;<img alt="Microsoft Edge" src="https://img.icons8.com/fluent/24/000000/ms-edge-new.png" align="center"/>&nbsp;&nbsp;Microsoft Edge\
+&nbsp;&nbsp;&nbsp;<img alt="Yandex Browser" src="https://img.icons8.com/plasticine/32/000000/yandex-browser.png" align="center"/> Yandex Browser\
+&nbsp;&nbsp;&nbsp;&nbsp;<img alt="Opera" src="https://img.icons8.com/fluent/24/000000/opera.png" align="center"/>&nbsp;&nbsp;Opera\
+&nbsp;&nbsp;&nbsp;&nbsp;<img alt="Opera GX" src="https://img.icons8.com/fluent/24/000000/opera-gx.png" align="center"/>&nbsp;&nbsp;Opera GX (нужно установить [дополнительное расширение](https://addons.opera.com/ru/extensions/details/install-chrome-extensions/))
+
+Установить из [Chrome Web Store](https://chrome.google.com/webstore/detail/m1pro/agapnbihododcdnknlbogoajfajllgjd)
+
+&nbsp;&nbsp;&nbsp;&nbsp;<img alt="Firefox" src="https://raw.githubusercontent.com/softvar/enhanced-github/master/screenshots/firefox.png" align="center"/>&nbsp;&nbsp;Firefox
+
 Установить из [Firefox browser Add-ons](https://addons.mozilla.org/en-US/firefox/addon/m1pro/)
+
+### <img alt="Android" src="https://img.icons8.com/color/28/000000/android-os.png" align="center"/> Для Android
+&nbsp;&nbsp;&nbsp;<img alt="Yandex Browser" src="https://img.icons8.com/plasticine/32/000000/yandex-browser.png" align="center"/> Yandex Browser\
+&nbsp;&nbsp;&nbsp;&nbsp;<img alt="Kiwi Browser" src="https://kiwibrowser.com/wp-content/uploads/2019/09/kiwibrowserlogo.png" height="24" width="24" align="center"/>&nbsp;&nbsp;Kiwi Browser
+
+Установить из [Chrome Web Store](https://chrome.google.com/webstore/detail/m1pro/agapnbihododcdnknlbogoajfajllgjd)
 
 ### <img alt="UserScript, etc." src="https://img.icons8.com/color/24/000000/javascript--v1.png" align="center"/>UserScript и другие
 Поддержка UserScript есть, но публикация не настроена, так как варианты с расширениями проще и более распространены. Если вы хотите использовать расширение через UserScript или, например, в других браузерах, то попросите и я опубликую.
