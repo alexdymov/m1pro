@@ -288,6 +288,10 @@ export default class GameState extends Vue {
         packet.msg.events?.forEach(event => {
             const pl = this.players.find(pl => pl.user_id === event.user_id);
             switch (event.type) {
+                case 'restart':
+                    this.$emit('restart');
+                    break;
+
                 case 'busStopChoosed':
                     current && (this.lastBusUserId = event.user_id)
                 case 'fieldToMoveChoosed':

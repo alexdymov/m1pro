@@ -8,6 +8,10 @@ export class LockableFields {
             if (!state.storage.about.is_m1tv && state.mePlaying) {
                 // this.lockAll();
                 this.init();
+                state.$on('restart', () => {
+                    this.unlockAll();
+                    jQuery('div.table-body-board-fields-one-lock').trigger('check');
+                });
             }
         });
     }
@@ -18,24 +22,30 @@ export class LockableFields {
             const ctr = fjqs.eq(k);
             const btn = jQuery('<div class="table-body-board-fields-one-lock"><div class="ion-toggle-filled"/></div>').hide();
 
-            const checkLocked = (k: number, locked: boolean) => {
+            const checkLocked = (locked: boolean) => {
                 btn.find('div').addClass(locked ? 'ion-toggle' : 'ion-toggle-filled').removeClass(!locked ? 'ion-toggle' : 'ion-toggle-filled');
                 if (locked) {
                     ctr.mnpl('locked', '1');
-                    this.state.lockedFields.add(k);
                 } else {
                     ctr.mnpl('locked', '0');
-                    this.unlock(k);
                 }
             }
+
+            btn.on('check', () => checkLocked(this.isLocked(k)));
+            btn.trigger('check');
 
             btn.on('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                checkLocked(k, !this.isLocked(k));
+                const locked = !this.isLocked(k);
+                if (locked) {
+                    this.state.lockedFields.add(k);
+                } else {
+                    this.unlock(k);
+                }
+                checkLocked(locked);
             });
             ctr.append(btn);
-            checkLocked(k, this.isLocked(k));
 
             this.state.$watch(() => this.state.storage.vms.fields.fields_with_equipment.get(k).owner_true, (val) => {
                 if (val) {
@@ -58,6 +68,10 @@ export class LockableFields {
         this.state.storage.vms.fields.fields_with_equipment.forEach((v, k) => {
             this.state.lockedFields.add(k);
         });
+    }
+
+    private unlockAll() {
+        this.state.lockedFields.clear();
     }
 
     private isLocked(id: number) {
