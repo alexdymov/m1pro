@@ -41,7 +41,7 @@ export class LockableFields {
                 if (val) {
                     btn.hide();
                     ctr.mnpl('locked', '0');
-                    btn.find('div').addClass('ion-toggle').removeClass('ion-toggle-filled');
+                    btn.find('div').addClass('ion-toggle-filled').removeClass('ion-toggle');
                     this.unlock(k);
                 } else {
                     btn.show();
