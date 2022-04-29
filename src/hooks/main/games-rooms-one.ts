@@ -41,8 +41,8 @@ export class GamesRoomsOne {
 
             case 'invites':
             case 'my':
-                // due to some circumstances Vue loads here twice, 
-                // first in the 'other' block and then in correct one, 
+                // due to some circumstances Vue loads here twice,
+                // first in the 'other' block and then in correct one,
                 // so we skip the first load here
                 if (this.jq.parents('div.VueGamesRooms > div.block').is(jQuery('div.VueGamesRooms > div.block').last())) {
                     break;
@@ -52,6 +52,9 @@ export class GamesRoomsOne {
                 }
                 this.initRoomInfo();
                 this.initStats();
+                if (this.base.room.room_id === 'mm') {
+                    this.initMm();
+                }
                 break;
         }
     }
@@ -153,6 +156,43 @@ export class GamesRoomsOne {
         this.base.$watch('players_all', debounce((val: Set<number>) => {
             this.loadUsers(val);
         }, 300), { deep: true, immediate: true });
+    }
+
+    private initMm() {
+        this.base.$watch('vote', debounce((val: any) => {
+            // Если val не undefined, проверяем доступно ли голосование и проголосовали ли мы
+            if (typeof val !== 'undefined' && val.is_active && !val.has_voted) {
+                debug('[room mm] go start vote', val);
+
+                // Ищем кнопку с текстом "Готов", т.к. возможно будут другие турниры с другими кнопками
+                const btn = this.searchBtnByText(val.variants, 'Готов');
+
+                // Если найдена кнопка, нажимаем ее
+                if (btn !== null) {
+                    // У callMethod строгая типизация, можно отправить только 4 аргумента
+                    window.API.callMethod('rooms.vote', {
+                      variant: btn.id
+                    }, (e: any) => {
+
+                    }, {});
+                }
+            }
+        }, 300), { deep: true, immediate: true });
+    }
+
+    private searchBtnByText(buttons: any, text: string)
+    {
+        for (let i in buttons) {
+            if (!buttons.hasOwnProperty(i)) {
+                continue;
+            }
+
+            if (typeof buttons[i].title !== 'undefined' && buttons[i].title === text) {
+                return buttons[i];
+            }
+        }
+
+        return null;
     }
 
     private loadUsers(val: Set<number>) {
