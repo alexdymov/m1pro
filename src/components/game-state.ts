@@ -296,8 +296,11 @@ export default class GameState extends Vue {
                 case 'busStopChoosed':
                     current && (this.lastBusUserId = event.user_id)
                 case 'fieldToMoveChoosed':
+                    roll.events.push(event);
+                    break;
                 case 'unjailedByFee':
                     roll.events.push(event);
+                    pl.expenses += event.money ?? event.sum ?? 0;
                     break;
                 case 'rollDices':
                     if (!packet.no_events) {
@@ -334,7 +337,6 @@ export default class GameState extends Vue {
                 case 'jackpot_lose':
                 case 'jackpot_superprize_funded':
                 case 'jackpot_paid':
-                case 'unjailedByFee':
                 case 'russianRoulette_process':
                     pl.expenses += event.money ?? event.sum ?? 0;
                     break;
