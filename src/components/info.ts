@@ -19,6 +19,15 @@ const opts: ComponentOptions<Vue> = {
                 <div class="Info-main selected"></div>
                 <div class="Info-pro">
                     <div class="Info-pro-head">Текущая версия: ${VERSION}</div>
+                    <div class="Info-pro-general">
+                        Сообщество для обсуждения: 
+                        <a href="https://discord.gg/YFzfEBcCKA" rel="nofollow" class="btn">
+                            <img src="https://camo.githubusercontent.com/f57032cdfa9884f57d69ede973b7c876a17afe1519b0aa271e06299651afbf81/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f446973636f72642d3732383944413f7374796c653d666c6174266c6f676f3d646973636f7264266c6f676f436f6c6f723d7768697465" alt="Discord" data-canonical-src="https://img.shields.io/badge/Discord-7289DA?style=flat&amp;logo=discord&amp;logoColor=white" style="max-width: 100%;">
+                        </a>
+                        <a target="_blank" rel="noopener noreferrer" class="btn" href="https://camo.githubusercontent.com/3f29b62bfbf1a9947a11107ca4aa6296fb2b35acde2a1896019f60194a1292d4/68747470733a2f2f696d672e736869656c64732e696f2f646973636f72642f393637343131323132333639343136313932">
+                            <img src="https://camo.githubusercontent.com/3f29b62bfbf1a9947a11107ca4aa6296fb2b35acde2a1896019f60194a1292d4/68747470733a2f2f696d672e736869656c64732e696f2f646973636f72642f393637343131323132333639343136313932" alt="Online" data-canonical-src="https://img.shields.io/discord/967411212369416192" style="max-width: 100%;">
+                        </a>
+                    </div>
                     <div class="Info-pro-history">${hist}</div>
                 </div>
             </div>
