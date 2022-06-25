@@ -4,6 +4,7 @@ import Vue from 'vue';
 import { debug } from '../util/debug';
 import GameState from '../components/game-state';
 import { expgame } from '../hooks/experimental/expgame';
+import initAnalytics from './analytics';
 
 export const gameStarter = () => {
     debug('M1Pro game boot');
@@ -30,6 +31,10 @@ export const gameStarter = () => {
         new ShowFieldMove(v, state);
         new ShowChanceCard(v, state);
         new LockableFields(state);
+
+        window.onReadyToUse(() => {
+            initAnalytics();
+        });
     });
     expgame(state);
     debug('M1Pro game boot done');

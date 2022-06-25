@@ -7,6 +7,7 @@ import { Adaptive, Profile } from '../pages';
 import MainState from '../components/main-state';
 import GamesFilter from '../components/games-filter';
 import { expmain } from '../hooks/experimental/expmain';
+import initAnalytics from './analytics';
 
 export const mainStarter = () => {
     debug('M1Pro main boot');
@@ -39,6 +40,7 @@ export const mainStarter = () => {
             const $el = jQuery('<div class="header-right"/>').appendTo('body > .header > .widther').get(0);
             new HeaderMenu({ $el }, state);
         }
+        initAnalytics();
     });
     debug('M1Pro main boot done');
 }
