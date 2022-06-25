@@ -57,6 +57,78 @@
         text-decoration: none;
     }
 }
+.Info-pro-donations {
+    >div {
+        .title {
+            text-align: center;
+        }
+        .buttons {
+            text-align: center;
+        }
+
+        >div {
+            display: flex;
+            flex-direction: column;
+
+            &:first-child {
+                div {
+                    align-self: center;
+                }
+            }
+        }
+
+        input[type="number"] {
+            width: 85px;
+        }
+        input[type="text"] {
+            width: 150px;
+        }
+        input[type="radio"] {
+            visibility: hidden;
+            position: absolute;
+        }
+
+        .yoo-controls {
+            display: flex;
+            align-content: center;
+            >input {
+                margin-right: 5px;
+            }
+            button {
+                max-height: 35px !important;
+                height: 35px !important;
+                &._selected {
+                    background: #8cc152 !important;
+                }
+            }
+            label:first-of-type button {
+                border-top-right-radius: unset !important;
+                border-bottom-right-radius: unset !important;
+            }
+            label:last-of-type button {
+                border-top-left-radius: unset !important;
+                border-bottom-left-radius: unset !important;
+            }
+        }
+
+        .yoo-icon {
+            background-size: contain;
+            vertical-align: middle;
+            position: relative;
+            top: -1px;
+        }
+        .yoo-icon-purse {
+            background-image: url(https://static.yoomoney.ru/makeupd/_/sqJ2MGna3IZGNFXC9k4QOrzUG-c.svg);
+            width: 16px;
+            height: 21px;
+        }
+        .yoo-icon-card {
+            background-image: url(https://static.yoomoney.ru/makeupd/_/KIvuZ8T0mHJKws1zGyf3gU47ivc.svg);
+            width: 19px;
+            height: 20px;
+        }
+    }
+}
 .Info-pro-history {
     h1 {
         margin: 20px 0;
