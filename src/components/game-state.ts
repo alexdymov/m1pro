@@ -55,7 +55,7 @@ class PacketPlayerEvents {
     lastDiceEvent: GameEvent = null;
 
     getLastPosition() {
-        const last = [...this.events].reverse().find(e => e.field_id !== undefined || e.mean_position !== undefined);
+        const last = [...this.events].reverse().find(e => e.field_id !== undefined || (e.mean_position !== undefined && e.type !== 'chance'));
         return last.mean_position ?? last.field_id;
     }
 }
