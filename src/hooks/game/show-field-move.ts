@@ -38,13 +38,6 @@ export class ShowFieldMove {
                 }
             });
 
-            state.$watch('comboJails', v => {
-                this.fjqs.removeClass('_mode_choose_field_available');
-                this.fjqs.parent().removeClass('_mode_choose_field');
-                this.pending = false;
-                this.pendingBus = false;
-            });
-
             state.$watch('wormholeDestinations', (v: Array<number>) => {
                 if (v.length) {
                     this.fjqs.first().parent().addClass('_mode_choose_field');
@@ -53,7 +46,7 @@ export class ShowFieldMove {
                     this.fjqs.removeClass('_mode_choose_field_available');
                     this.fjqs.parent().removeClass('_mode_choose_field');
                 }
-            })
+            });
 
             state.$watch('storage.is_events_processing', p => {
                 debug('is_events_processing', p);
@@ -73,8 +66,12 @@ export class ShowFieldMove {
     private getPositions(v: GameEvent) {
         const reverse = v.move_reverse;
         const dices = v.dices;
+        const singlePos = [v.mean_position];
+        if (this.isComboJail()) {
+            return [];
+        }
         if (dices.length == 2) {
-            return [v.mean_position];
+            return singlePos;
         } else if (dices.length > 2 && !this.isTrippleDiceRoll(dices)) {
             const last = dices[2];
             const currPos = this.state.storage.status.players.find(pl => pl.user_id === v.user_id).position;
@@ -83,7 +80,7 @@ export class ShowFieldMove {
             } else if (last === 5) {
                 return this.getM1Positions(currPos, v.mean_position, reverse, v.user_id);
             } else {
-                return [v.mean_position];
+                return singlePos;
             }
         }
         return [];
@@ -95,20 +92,30 @@ export class ShowFieldMove {
         const fields = this.getDirectionFields(startSearchPos, reverse);
         const vacantFields = fields.filter(f => !f.owner_true);
         const firstVacant = vacantFields.length > 0 && vacantFields[0];
+        const singlePos = [meanPos];
         debug('pos', currPos)
         debug('fields', fields);
         debug('vacant', firstVacant?.field_id);
-        if (meanPos === 30) {
-            return [meanPos];
+        if (this.isPosJail(meanPos)) {
+            return singlePos;
         }
         if (vacantFields.length === 1 && vacantFields[0].field_id === meanPos) {
-            return [meanPos];
+            return singlePos;
         }
         if (firstVacant) {
             return [meanPos, firstVacant.field_id];
         } else {
             return [meanPos, fields.find(f => f.owner_true !== user && f.mortgaged !== true).field_id];
         }
+    }
+
+    private isComboJail() {
+        return !!this.state.currentEvents.events.find(e => e.type === 'goToJailByCombo');
+    }
+
+    private isPosJail(meanPos: number) {
+        const byChance = !!this.state.currentEvents.events.find(e => e.type === 'chance' && this.state.storage.config.chance_cards[e.chance_id].type === 'jail');
+        return meanPos === 30 || byChance;
     }
 
     private getDirectionFields(fromPos: number, reverse: number) {

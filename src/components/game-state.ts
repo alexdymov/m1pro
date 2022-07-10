@@ -148,7 +148,6 @@ export default class GameState extends Vue {
     pendingChancePool = new Array<number>();
     pendingChancesToRemove = new Array<number>();
     currentChanceCards = new Array<CurrentChanceCard>();
-    comboJails = 0;
     currentEvents = new PacketPlayerEvents();
     demoEvents = new PacketPlayerEvents();
     wormholeDestinations = new Array<number>();
@@ -312,7 +311,7 @@ export default class GameState extends Vue {
                     this.gameOver = true;
                     break;
                 case 'goToJailByCombo':
-                    this.comboJails++;
+                    roll.events.push(event);
                     break;
                 case 'double_spended':
                     roll.doubleSpent = true;
@@ -395,6 +394,7 @@ export default class GameState extends Vue {
                     break;
 
                 case 'chance':
+                    roll.events.push(event);
                     const chanceCard = this.storage.config.chance_cards[event.chance_id];
 
                     if (current) {
