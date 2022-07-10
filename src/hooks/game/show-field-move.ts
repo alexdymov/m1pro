@@ -83,11 +83,16 @@ export class ShowFieldMove {
         if (this.isComboJail()) {
             return [];
         }
+
+        const spl = this.state.storage.status.players.find(pl => pl.user_id === v.user_id);
+        if (spl.jailed && spl.unjailAttempts !== 2 && !this.state.currentEvents.events.find(e => e.type === 'rollDicesForUnjailSuccess')) {
+            return [];
+        }
         if (dices.length == 2) {
             return singlePos;
         } else if (dices.length > 2 && !this.isTrippleDiceRoll(dices)) {
             const last = dices[2];
-            const currPos = this.state.storage.status.players.find(pl => pl.user_id === v.user_id).position;
+            const currPos = spl.position;
             if (last === 4 || last === 6) {
                 return this.getBusPositions(currPos, dices, reverse, v.user_id);
             } else if (last === 5) {

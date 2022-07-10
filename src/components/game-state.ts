@@ -318,6 +318,9 @@ export default class GameState extends Vue {
                 case 'double_spended':
                     roll.doubleSpent = true;
                     break;
+                case 'rollDicesForUnjailSuccess':
+                    roll.events.push(event);
+                    break;
 
                 case 'startBypass':
                     pl.laps++;
