@@ -38,6 +38,19 @@ export class ShowFieldMove {
                 }
             });
 
+            this.state.$watch('currentChooses', (v: Array<GameEvent>) => {
+                debug('currentChooses', JSON.parse(JSON.stringify(v)));
+                if (v.length) {
+                    this.fjqs.first().parent().addClass('_mode_choose_field');
+                    if (this.pendingBus) {
+                        this.fjqs.removeClass('_mode_choose_field_available');
+                    }
+                    v.forEach(ev => this.fjqs.eq(ev.field_id ?? ev.mean_position).addClass('_mode_choose_field_available'));
+                    v.splice(0, v.length);
+                    this.pending = true;
+                }
+            });
+
             state.$watch('wormholeDestinations', (v: Array<number>) => {
                 if (v.length) {
                     this.fjqs.first().parent().addClass('_mode_choose_field');

@@ -138,6 +138,7 @@ export default class GameState extends Vue {
     settings: GameSettings = null;
     lastBusUserId = 0;
     currentTeleports = new Array<GameEvent>();
+    currentChooses = new Array<GameEvent>();
     pendingLastReverseMoveRounds: { [key: string]: number } = {};
     pendingLastSkipMoveRounds: { [key: string]: number } = {};
     lastReverseMoveRounds: { [key: string]: number } = {};
@@ -293,9 +294,10 @@ export default class GameState extends Vue {
                     break;
 
                 case 'busStopChoosed':
-                    current && (this.lastBusUserId = event.user_id)
+                    current && (this.lastBusUserId = event.user_id, this.currentChooses.push(event));
                 case 'fieldToMoveChoosed':
                     roll.events.push(event);
+                    current && this.currentChooses.push(event);
                     break;
                 case 'unjailedByFee':
                     roll.events.push(event);
