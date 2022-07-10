@@ -320,6 +320,7 @@ export default class GameState extends Vue {
                     break;
                 case 'rollDicesForUnjailSuccess':
                     roll.events.push(event);
+                    jQuery(pl.token).find('div._jail').hide();
                     break;
 
                 case 'startBypass':
