@@ -29,7 +29,20 @@ export class PlayerColors {
             jQuery(pl.token)
                 .append('<div class="_skip"/>')
                 .append('<div class="_back" />')
+                .append('<div class="_jail" />')
                 .children().hide();
+            const idx = this.state.storage.status.players.findIndex(spl => spl.user_id === pl.user_id);
+            this.state.$watch(() => {
+                const spl = this.state.storage.status.players[idx];
+                return spl.jailed ? spl.unjailAttempts : -1;
+            }, v => {
+                const el = jQuery('div._jail', pl.token);
+                if (v >= 0 && v < 3) {
+                    el.show().text(3 - v);
+                } else {
+                    el.hide();
+                }
+            });
         });
         debug('players tokens', this.state.players.map(pl => pl.token));
     }
