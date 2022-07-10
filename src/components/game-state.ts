@@ -476,7 +476,8 @@ export default class GameState extends Vue {
 
     private getCurrentRound(packet: Packet, userId: number) {
         const packetRound = packet.msg.status.round;
-        if (this.players.findIndex(pl => pl.user_id === userId) === this.players.length - 1 && packet.msg.status.action_player !== userId) {
+        const playersLeft = this.storage.status.players.filter(spl => spl.status !== -1);
+        if (playersLeft.findIndex(pl => pl.user_id === userId) === playersLeft.length - 1 && packet.msg.status.action_player !== userId) {
             return packetRound - 1;
         } else {
             return packetRound;
