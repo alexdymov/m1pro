@@ -3,14 +3,29 @@ import Vue from 'vue';
 import { ChanceCard, ChanceCardState, GamePlayer } from '../shared/beans';
 import cloneDeep from 'lodash/cloneDeep';
 import { debug } from '../util/debug';
+import { computeIfAbsent } from '../util/compute-if-absent';
+
+class ChanceRangeElem {
+    constructor(public range: Array<number>) { }
+    count: number = 0;
+
+    static computeIfAbsent(cre: Array<ChanceRangeElem>, range: Array<number>) {
+        let found = cre.find(c => c.range[0] === range[0] && c.range[1] === range[1]);
+        if (!found) {
+            found = new ChanceRangeElem(range);
+            cre.push(found);
+        }
+        return found;
+    }
+}
 
 class ChanceIncome {
-    random: number
+    random: Array<ChanceRangeElem> = []
     birthday: number
 }
 
 class ChanceOutcome {
-    random: number
+    random: Array<ChanceRangeElem> = []
     repair: number
     insurance: number
 }
@@ -51,14 +66,18 @@ const ChanceItemsProps = Vue.extend({
     <div class="pool-items" v-if="rendered">
         <div class="pool-item pool-multi" v-if="incomeAvail">
             <div class="ion-social-usd profit_pos" />
-            <span class="pool-sub" v-if="chanceValues.income.random > 0">Рандом: {{chanceValues.income.random}}</span>
-            <span class="pool-sub" v-if="chanceValues.income.birthday > 0">ДР: +{{chanceValues.income.birthday}}</span>
+            <div class="multi-list">
+                <span class="pool-sub" v-for="cre in incomeRnd">Рандом <span class="range">{{cre.range[0]}}-{{cre.range[1]}}</span>: {{cre.count}}</span>
+                <span class="pool-sub" v-if="chanceValues.income.birthday > 0">ДР: +{{chanceValues.income.birthday}}</span>
+            </div>
         </div>
         <div class="pool-item pool-multi" v-if="outcomeAvail">
             <div class="ion-social-usd profit_neg" />
-            <span class="pool-sub" v-if="chanceValues.outcome.random > 0">Рандом: {{chanceValues.outcome.random}}</span>
-            <span class="pool-sub" v-if="chanceValues.outcome.repair > 0">Ремонт: {{chanceValues.outcome.repair}}</span>
-            <span class="pool-sub" v-if="chanceValues.outcome.insurance > 0">Страховка: -{{chanceValues.outcome.insurance}}</span>
+            <div class="multi-list">
+                <span class="pool-sub" v-for="cre in outcomeRnd">Рандом <span class="range">{{cre.range[0]}}-{{cre.range[1]}}</span>: {{cre.count}}</span>
+                <span class="pool-sub" v-if="chanceValues.outcome.insurance > 0">Страховка: -{{chanceValues.outcome.insurance}}</span>
+                <span class="pool-sub" v-if="chanceValues.outcome.repair > 0">Ремонт: {{chanceValues.outcome.repair}}</span>
+            </div>
         </div>
         <div class="pool-item" v-if="chanceValues.teleport > 0">
             <div class="pool-logo pool-teleport" /><span class="pool-count">{{chanceValues.teleport}}</span>
@@ -116,7 +135,7 @@ export default class ChanceItems extends ChanceItemsProps {
             switch (card.type) {
                 case 'cash_in':
                     !this.chanceValues.income && (this.chanceValues.income = new ChanceIncome());
-                    this.chanceValues.income.random = 0;
+                    ChanceRangeElem.computeIfAbsent(this.chanceValues.income.random, card.range);
                     break;
                 case 'birthday':
                     !this.chanceValues.income && (this.chanceValues.income = new ChanceIncome());
@@ -124,7 +143,7 @@ export default class ChanceItems extends ChanceItemsProps {
                     break;
                 case 'cash_out':
                     !this.chanceValues.outcome && (this.chanceValues.outcome = new ChanceOutcome());
-                    this.chanceValues.outcome.random = 0;
+                    ChanceRangeElem.computeIfAbsent(this.chanceValues.outcome.random, card.range);
                     break;
                 case 'insurance':
                     !this.chanceValues.outcome && (this.chanceValues.outcome = new ChanceOutcome());
@@ -165,13 +184,13 @@ export default class ChanceItems extends ChanceItemsProps {
             }
             switch (card.type) {
                 case 'cash_in':
-                    this.chanceValues.income.random++;
+                    ChanceRangeElem.computeIfAbsent(this.chanceValues.income.random, card.range).count++;
                     break;
                 case 'birthday':
                     this.chanceValues.income.birthday = this.getBirthdaySum(card);
                     break;
                 case 'cash_out':
-                    this.chanceValues.outcome.random++;
+                    ChanceRangeElem.computeIfAbsent(this.chanceValues.outcome.random, card.range).count++;
                     break;
                 case 'insurance':
                     this.chanceValues.outcome.insurance = card.sum;
@@ -211,10 +230,22 @@ export default class ChanceItems extends ChanceItemsProps {
     }
 
     get incomeAvail() {
-        return this.chanceValues.income !== undefined && Object.values(this.chanceValues.income).filter(v => v > 0).length;
+        return this.chanceValues.income !== undefined && Object.values(this.chanceValues.income).filter(v => this.filterAvail(v)).length;
     }
 
     get outcomeAvail() {
-        return this.chanceValues.outcome !== undefined && Object.values(this.chanceValues.outcome).filter(v => v > 0).length;
+        return this.chanceValues.outcome !== undefined && Object.values(this.chanceValues.outcome).filter(v => this.filterAvail(v)).length;
+    }
+
+    get incomeRnd() {
+        return this.chanceValues.income.random.filter(v => v.count > 0);
+    }
+
+    get outcomeRnd() {
+        return this.chanceValues.outcome.random.filter(v => v.count > 0);
+    }
+
+    private filterAvail(v: number | Array<ChanceRangeElem>) {
+        return typeof v === "number" ? v > 0 : v.reduce((a, b) => a + b.count, 0) > 0;
     }
 }

@@ -42,7 +42,7 @@
 
     .TablePool-content {
         width: 175px;
-        height: 250px;
+        height: 290px;
         background-color: #161a1b;
         white-space: nowrap;
         padding: 10px;
@@ -100,13 +100,21 @@
                 }
             }
             .pool-multi {
-                grid-row: 1;
-                flex-direction: column;
+                grid-column: 1 / span 2;
+                flex-direction: row;
                 padding: 5px !important;
-                align-self: flex-start;
+                font-size: 36px;
+                column-gap: 10px;
+                .multi-list {
+                    display: flex;
+                    flex-direction: column;
+                }
+                .range {
+                    color: #a1a1a4;
+                }
             }
             .pool-sub {
-                font-size: 8px;
+                font-size: 12px;
             }
             .pool-logo {
                 background-position: center;
