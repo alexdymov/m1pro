@@ -29,14 +29,22 @@ export class PlayerColors {
             jQuery(pl.token)
                 .append('<div class="_skip"/>')
                 .append('<div class="_back" />')
-                .append('<div class="_jail" />')
+                .append('<div class="_cntr" />')
                 .children().hide();
             const idx = this.state.storage.status.players.findIndex(spl => spl.user_id === pl.user_id);
+            this.state.$watch(`storage.status.players.${idx}.doublesRolledAsCombo`, v => {
+                const el = jQuery('div._cntr', pl.token);
+                if (v !== 0) {
+                    el.show().text(v);
+                } else {
+                    el.hide();
+                }
+            });
             this.state.$watch(() => {
                 const spl = this.state.storage.status.players[idx];
                 return spl.jailed ? spl.unjailAttempts : -1;
             }, v => {
-                const el = jQuery('div._jail', pl.token);
+                const el = jQuery('div._cntr', pl.token);
                 if (v >= 0 && v < 3) {
                     el.show().text(3 - v);
                 } else {
