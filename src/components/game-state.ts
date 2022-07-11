@@ -287,6 +287,7 @@ export default class GameState extends Vue {
         let ctrRes = 0;
         packet.msg.events?.forEach(event => {
             const pl = this.players.find(pl => pl.user_id === event.user_id);
+            const spl = this.storage.status.players.find(spl => spl.user_id === event.user_id);
             switch (event.type) {
                 case 'restart':
                     this.$emit('restart');
@@ -307,6 +308,9 @@ export default class GameState extends Vue {
                     if (!packet.no_events) {
                         roll.events.push(event);
                         roll.lastDiceEvent = event;
+                        if (spl.doublesRolledAsCombo > 0 && !this.isLastDiceRollDouble(roll)) {
+                            jQuery(pl.token).find('div._cntr').hide();
+                        }
                     }
                     break;
                 case 'gameOver':
@@ -497,13 +501,18 @@ export default class GameState extends Vue {
     }
 
     private isMoveSkipApplied(roll: PacketPlayerEvents, current: boolean) {
+        const diceRollDouble = this.isLastDiceRollDouble(roll);
+        const res = (current || (this.storage.status.round - roll.round) < 1) && (!diceRollDouble || roll.doubleSpent);
+        debug(`isMoveSkipApplied===${res}`, current, this.storage.status.round - roll.round, diceRollDouble, roll);
+        return res;
+    }
+
+    private isLastDiceRollDouble(roll: PacketPlayerEvents) {
         const dices = roll.lastDiceEvent?.dices;
         const diceRollTriple = (dices?.length === 3 && dices[0] < 4 && dices[0] === dices[1] && dices[0] === dices[2]);
         const diceRollDouble = (dices?.length === 2 && dices[0] === dices[1]) ||
             (dices?.length === 3 && dices[0] === dices[1] && !diceRollTriple);
-        const res = (current || (this.storage.status.round - roll.round) < 1) && (!diceRollDouble || roll.doubleSpent);
-        debug(`isMoveSkipApplied===${res}`, current, this.storage.status.round - roll.round, diceRollDouble, diceRollTriple, roll);
-        return res;
+        return diceRollDouble;
     }
 
     public loadDemo(id?: number, tries = 0): JQueryPromise<Array<UpdateAction>> {
