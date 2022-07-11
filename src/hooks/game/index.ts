@@ -8,5 +8,6 @@ import { ShowFieldMove } from './show-field-move';
 import { ShowChanceCard } from './show-chance-card';
 import { LockableFields } from './lockable-fields';
 import { TableAction } from './table-action';
+import { TableChat } from './table-chat';
 
-export { PlayerColors, PlayerCards, PlayerCardMenu, GameStats, FieldActions, TableContract, ShowFieldMove, ShowChanceCard, LockableFields, TableAction }
+export { PlayerColors, PlayerCards, PlayerCardMenu, GameStats, FieldActions, TableContract, ShowFieldMove, ShowChanceCard, LockableFields, TableAction, TableChat }

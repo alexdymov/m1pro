@@ -1,4 +1,4 @@
-import { FieldActions, GameStats, PlayerCardMenu, PlayerCards, PlayerColors, ShowFieldMove, TableContract, ShowChanceCard, TableAction, LockableFields } from '../hooks/game';
+import { FieldActions, GameStats, PlayerCardMenu, PlayerCards, PlayerColors, ShowFieldMove, TableContract, ShowChanceCard, TableAction, LockableFields, TableChat } from '../hooks/game';
 import vooker from '../util/vue-hooker';
 import Vue from 'vue';
 import { debug } from '../util/debug';
@@ -31,6 +31,7 @@ export const gameStarter = () => {
         new ShowFieldMove(v, state);
         new ShowChanceCard(v, state);
         new LockableFields(state);
+        new TableChat(state);
 
         window.onReadyToUse(() => {
             initAnalytics();
