@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "async": ">=2.6.4",
-    "jpeg-js": ">=0.4.0",
+    "jpeg-js": ">=0.4.4",
     "json-schema": ">=0.4.0",
     "nth-check": ">=2.0.1",
     "minimist": ">=1.2.6",
