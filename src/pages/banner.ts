@@ -4,8 +4,9 @@ import info from '../components/info';
 export default class Banner {
     constructor(private state: MainState) {
         if (localStorage.getItem('m1pro_banner_hidden') !== '1') {
-            window.onReadyToUse(() => {
+            state.onCallMethod("execute.games", (v: any) => {
                 this.init();
+                return true;
             });
         }
     }
