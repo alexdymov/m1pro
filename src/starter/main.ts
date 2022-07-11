@@ -8,6 +8,7 @@ import MainState from '../components/main-state';
 import GamesFilter from '../components/games-filter';
 import { expmain } from '../hooks/experimental/expmain';
 import initAnalytics from './analytics';
+import Banner from '../pages/banner';
 
 export const mainStarter = () => {
     debug('M1Pro main boot');
@@ -18,7 +19,10 @@ export const mainStarter = () => {
     pooker.add(page => page.pathname.startsWith('/market'), () => require('../style/main/market.less'));
     pooker.add(page => page.pathname.startsWith('/m1tv'), () => require('../style/main/m1tv.less'));
     pooker.add(page => page.pathname.startsWith('/trades'), () => require('../style/main/trades.css'));
-    pooker.add(page => page.pathname.startsWith('/games'), () => new Adaptive());
+    pooker.add(page => page.pathname.startsWith('/games'), () => {
+        new Adaptive();
+        new Banner(state);
+    });
 
     const cb = new CollapseBlock();
     vooker.ifMount(jq => jq.is('div.VueGamesSeasonpass, div.GamesMissions, div.VueGamesTopweek, div.VueGamesFriends, div.Gchat'), v => (cb.add(v)));
