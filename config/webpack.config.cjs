@@ -36,14 +36,26 @@ function createConfig(options) {
     plugins.push(new WrapperPlugin({
       test: new RegExp(`${filename}$`),
       header: `
-        Object.defineProperty(window, "Vue", {
-          configurable: true,
-            set(v) {
-              Object.defineProperty(window, "Vue", { configurable: true, enumerable: true, writable: true, value: v });
+        function bootm1pro() {
+          require.async("//cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.min.js").then(vv => {
+            window.Vue = vv;
               `,
       footer: `
-            }
-        });`
+          });
+        }
+
+        if ('JSWaterfall' in window) {
+          bootm1pro();
+        } else {
+          Object.defineProperty(window, "JSWaterfall", {
+            configurable: true,
+              set(v) {
+                Object.defineProperty(window, "JSWaterfall", { configurable: true, enumerable: true, writable: true, value: v });
+                bootm1pro();
+              }
+          });
+        }
+        `
     }));
 
     if (options.prod) {
@@ -80,14 +92,25 @@ function createConfig(options) {
     plugins.push(new WrapperPlugin({
       test: /\.js$/,
       header: `var scriptCode = '(' + function() {
-        Object.defineProperty(window, "Vue", {
-          configurable: true,
-            set(v) {
-              Object.defineProperty(window, "Vue", { configurable: true, enumerable: true, writable: true, value: v });
+        function bootm1pro() {
+          require.async("//cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.min.js").then(vv => {
+            window.Vue = vv;
       `,
       footer: `
-            }
           });
+        }
+
+        if ('JSWaterfall' in window) {
+          bootm1pro();
+        } else {
+          Object.defineProperty(window, "JSWaterfall", {
+            configurable: true,
+              set(v) {
+                Object.defineProperty(window, "JSWaterfall", { configurable: true, enumerable: true, writable: true, value: v });
+                bootm1pro();
+              }
+          });
+        }
         } + ')();';
         var script = document.createElement('script');
         script.textContent = scriptCode;
