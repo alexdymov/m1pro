@@ -1,5 +1,5 @@
-import MainState from '../components/main-state';
 import info from '../components/info';
+import MainState from '../components/main-state';
 
 export default class Banner {
     constructor(private state: MainState) {
@@ -14,6 +14,19 @@ export default class Banner {
     private init() {
         require('../style/main/banner.less');
         const banner = jQuery('<div>').addClass('games-market-list-one _horizontal _m1pro').prependTo('div.games-market-list');
+        // FIXME: the only fcking way to handle this is to return the correct index
+        // $('.games-market-list-one').index() is called twice but we only need to fix index for the case where jquery init context of the is the banner's "button click", other's (right/left button clicks) context is "document"
+        const oldidx = jQuery.fn.index;
+        jQuery.fn.extend({
+            index: function () {
+                const idx = oldidx.call(this);
+                if (this.hasClass('games-market-list-one') && jQuery(this.context).is('button')) {
+                    return idx - 1;
+                } else {
+                    return idx;
+                }
+            }
+        });
         banner.css('background-image', 'linear-gradient(162deg, rgb(0, 0, 0) 28%, rgb(220, 20, 60) 130%');
         const ctr = jQuery('<div>').addClass('_container').appendTo(banner);
         ctr.append(`
