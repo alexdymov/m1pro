@@ -19,7 +19,8 @@ const dist = rpath.resolve(__dirname, '../dist');
 function createConfig(options) {
   const plugins = [
     new DefinePlugin({
-      VERSION: JSON.stringify(version)
+      VERSION: JSON.stringify(version),
+      'process.env.TARGET': JSON.stringify(options.target)
     })
   ];
 

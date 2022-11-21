@@ -1,5 +1,5 @@
 
-export default function initAnalytics() {
+export const initAnalytics = process.env.TARGET === 'firefox' ? () => {} : () => {
     var ga = document.createElement('script');
     ga.type = 'text/javascript';
     ga.async = true;
