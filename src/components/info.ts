@@ -1,10 +1,8 @@
-import Vue, { ComponentOptions } from 'vue';
-import { debug } from '../util/debug';
-import '../style/info.less';
-import logo from '../../assets/images/icon128.png';
-import hist from '../../CHANGELOG.md';
-import MainState from './main-state';
 import merge from 'lodash/merge';
+import Vue, { ComponentOptions } from 'vue';
+import hist from '../../CHANGELOG.md';
+import '../style/info.less';
+import MainState from './main-state';
 
 const opts: ComponentOptions<Vue> = {
     template: `
@@ -115,7 +113,7 @@ const opts: ComponentOptions<Vue> = {
         });
         if (this.state.isUnseen(VERSION)) {
             jq.find('div.badge').show();
-            jq.find('div.Info-pro-history h3 > strong').each((i, el) => {
+            jq.find('div.Info-pro-history h4 > strong').each((i, el) => {
                 const jel = jQuery(el);
                 if (this.state.isUnseen(jel.text())) {
                     jel.addClass('newver');
