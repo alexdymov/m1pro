@@ -1,9 +1,10 @@
-import Component from 'vue-class-component';
-import { MarketListingData, MarketListingReq, MarketListingThing, MarketLotsData, MarketLotsReq, MResp, UserInfoLong, UsersGetReq, UsersData, FriendsGetReq, FriendsData, RoomsChangeSettings } from '../shared/beans';
+import pThrottle from 'p-throttle';
 import Vue from 'vue';
+import Component from 'vue-class-component';
+import { FriendsData, FriendsGetReq, MarketBestPrice, MarketListingReq, MarketLotsData, MarketLotsReq, MResp, RoomsChangeSettings, UserInfoLong, UsersData, UsersGetReq } from '../shared/beans';
 import { debug } from '../util/debug';
-import { propWaitWindow } from '../util/prop-def';
 import { handleResponse } from '../util/http-util';
+import { propWaitWindow } from '../util/prop-def';
 
 export class ModeCustomSettings {
     maxplayers?: number;
@@ -29,6 +30,13 @@ export default class MainState extends Vue {
     gamesNewSettings: GamesNewSettings = null;
     ver = VERSION;
     private listeners = new Map<String, (data: any) => boolean>();
+    private throttler = pThrottle({ limit: 1, interval: 200 });
+
+    post(url: string, data: any): JQuery.Promise<any> {
+        const def = $.Deferred();
+        this.throttler(() => $.post(url, data).then(val => def.resolve(val)).fail(e => def.reject(e)))();
+        return def.promise();
+    }
 
     created() {
         const localSettings = localStorage.getItem('games_new_settings');
@@ -86,7 +94,7 @@ export default class MainState extends Vue {
     }
 
     loadLots() {
-        $.post('/api/market.getMyLots', new MarketLotsReq())
+        this.post('/api/market.getMyLots', new MarketLotsReq())
             .then((res: MResp<MarketLotsData>) => {
                 if (res.code) {
                     throw res;
@@ -96,45 +104,42 @@ export default class MainState extends Vue {
             }).fail(err => console.error(err));
     }
 
-    getSingleMarketListing(id: string): JQuery.Promise<MarketListingThing> {
-        return $.post('/api/market.getListing', new MarketListingReq(id, 1))
-            .then((res: MResp<MarketListingData>) => {
-                const def = $.Deferred();
-                if (res.code || !res.data?.things?.length) {
-                    return def.reject(res);
+    getBestPrice(id: string): JQuery.Promise<number> {
+        return this.post('/api/market.getBestPrice', new MarketListingReq(id, 1))
+            .then((res: MResp<MarketBestPrice>) => {
+                if (res.code) {
+                    throw res;
                 } else {
-                    return def.resolve(res.data.things[0]);
+                    return res.data.price;
                 }
             });
     }
 
     getUserInfo(id: number | string | [], ids: string[] = [], type?: string): JQuery.Promise<UserInfoLong[]> {
-        return $.post('/api/users.get', new UsersGetReq(type, id, ids.length ? ids.join(',') : ids))
+        return this.post('/api/users.get', new UsersGetReq(type, id, ids.length ? ids.join(',') : ids))
             .then((res: UsersData) => {
-                const def = $.Deferred();
                 if (res.code || !res.data?.length) {
-                    return def.reject(res);
+                    throw res;
                 } else {
-                    return def.resolve(res.data);
+                    return res.data;
                 }
             });
     }
 
     getFriends(req: FriendsGetReq): JQuery.Promise<FriendsData> {
-        return $.post('/api/friends.get', req)
+        return this.post('/api/friends.get', req)
             .then((res: MResp<FriendsData>) => {
-                const def = $.Deferred();
                 if (res.code) {
-                    return def.reject(res);
+                    throw res;
                 } else {
-                    return def.resolve(res.data);
+                    return res.data;
                 }
             });
     }
 
     getItemPrice(id: number): JQuery.Promise<number> {
         if (!this.itemPrices.has(id)) {
-            this.itemPrices.set(id, this.getSingleMarketListing(`${id}`).then(thing => thing.price));
+            this.itemPrices.set(id, this.getBestPrice(`${id}`));
         }
         return this.itemPrices.get(id);
     }
@@ -144,7 +149,7 @@ export default class MainState extends Vue {
     }
 
     changeSetting(roomId: string, name: string, value: any, token?: string): JQuery.Promise<boolean> {
-        return $.post('/api/rooms.settingsChange', new RoomsChangeSettings(roomId, name, value).withCaptcha(token))
+        return this.post('/api/rooms.settingsChange', new RoomsChangeSettings(roomId, name, value).withCaptcha(token))
             .then(handleResponse(() => true, tkn => this.changeSetting(roomId, name, value, tkn)))
             .fail(e => console.error('failed to change setting', name, 'code', e));
     }

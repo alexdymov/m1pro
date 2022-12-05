@@ -27,6 +27,12 @@ export class MarketListingReq extends MReq {
     }
 }
 
+export class MarketBestPriceReq extends MReq {
+    constructor(public thing_prototype_id: string | number) {
+        super();
+    }
+}
+
 export class FriendsGetReq extends MReq {
     constructor(public online: Presence | [] = [], public add_user_info: Presence | [] = [], public user_id: number | string | [] = []) {
         super();
@@ -63,6 +69,10 @@ export interface MResp<T> {
 
 export interface CountableData {
     count: number;
+}
+
+export interface MarketBestPrice {
+    price: number;
 }
 
 export interface MarketListingData extends CountableData {

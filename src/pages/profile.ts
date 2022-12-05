@@ -1,7 +1,6 @@
+import MainState from '../components/main-state';
 import { InventoryData, InventoryGetReq, MarketLotThing, MResp, UserInfoLong } from '../shared/beans';
 import { debug } from '../util/debug';
-import { propWaitWindow } from '../util/prop-def';
-import MainState from '../components/main-state';
 
 interface ExecuteProfile {
     result: {
@@ -69,7 +68,7 @@ export class Profile {
     }
 
     loadInventoryItems(user_id: number) {
-        $.post('/api/inventory.get', new InventoryGetReq(user_id))
+        this.state.post('/api/inventory.get', new InventoryGetReq(user_id))
             .then((res: MResp<InventoryData>) => {
                 if (res.code) {
                     throw res;
