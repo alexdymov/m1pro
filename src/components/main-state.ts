@@ -1,7 +1,7 @@
 import pThrottle from 'p-throttle';
 import Vue from 'vue';
 import Component from 'vue-class-component';
-import { FriendsData, FriendsGetReq, MarketBestPrice, MarketListingReq, MarketLotsData, MarketLotsReq, MResp, RoomsChangeSettings, UserInfoLong, UsersData, UsersGetReq } from '../shared/beans';
+import { FriendsData, FriendsGetReq, MarketBestPrice, MarketBestPriceReq, MarketLotsData, MarketLotsReq, MResp, RoomsChangeSettings, UserInfoLong, UsersData, UsersGetReq } from '../shared/beans';
 import { debug } from '../util/debug';
 import { handleResponse } from '../util/http-util';
 import { propWaitWindow } from '../util/prop-def';
@@ -30,7 +30,7 @@ export default class MainState extends Vue {
     gamesNewSettings: GamesNewSettings = null;
     ver = VERSION;
     private listeners = new Map<String, (data: any) => boolean>();
-    private throttler = pThrottle({ limit: 1, interval: 200 });
+    private throttler = pThrottle({ limit: 1, interval: parseInt(localStorage.getItem('m1pro_throttler_timeout') || "500") });
 
     post(url: string, data: any): JQuery.Promise<any> {
         const def = $.Deferred();
@@ -105,7 +105,7 @@ export default class MainState extends Vue {
     }
 
     getBestPrice(id: string): JQuery.Promise<number> {
-        return this.post('/api/market.getBestPrice', new MarketListingReq(id, 1))
+        return this.post('/api/market.getBestPrice', new MarketBestPriceReq(id))
             .then((res: MResp<MarketBestPrice>) => {
                 if (res.code) {
                     throw res;

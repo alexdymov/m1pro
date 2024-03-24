@@ -9,7 +9,7 @@ export const handleResponse: Handler = (resolve, callable) => {
         const def = $.Deferred();
         if (res.code) {
             if (res.code === 8) {
-                return window.require.async('/js/vuem/Captcha.js').then(() => {
+                return window._require.async('/js/vuem/Captcha.js').then(() => {
                     return window._libs.dialog.show({ component: "captcha", buttons: [{ is_default: true, title: "Отмена" }] })
                         .then((tkn: string) => callable(tkn));
                 })

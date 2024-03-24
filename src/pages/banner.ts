@@ -53,7 +53,7 @@ export default class Banner {
             jQuery(".games-market-arrow").trigger("click");
         });
         ctr.find('button._show').on('click', () => {
-            window.require("/js/dialog.js").showComponent(info(this.state, true));
+            window._require("/js/dialog.js").showComponent(info(this.state, true));
             hideBtn.show();
         });
     }

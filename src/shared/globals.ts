@@ -4,9 +4,7 @@ declare global {
     interface Window {
         onReadyToUse: (fn: any) => void
         tableResize: (v: boolean) => void
-        require: {
-            async: (src: string) => Promise<any>
-        }
+        _require: any
         _libs: {
             dialog: {
                 show: (args: any) => Promise<any>

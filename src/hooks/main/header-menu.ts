@@ -36,7 +36,7 @@ export class HeaderMenu {
         ].flat().forEach(it => rightctr.prepend(this.newItem('header-right-one', it)));
 
         this.verBadge = jQuery('<div class="badge">1</div>').hide();
-        const infoItem = new Item('Информация', 'ion-information-circled', () => window.require("/js/dialog.js").showComponent(info(this.state)), () => this.verBadge);
+        const infoItem = new Item('Информация', 'ion-information-circled', () => window._require("/js/dialog.js").showComponent(info(this.state)), () => this.verBadge);
         if (!signed) {
             setTimeout(() => {
                 jQuery('.header-auth div.button').removeClass('button').removeClass('button-grass').text('').addClass('ion-log-in').addClass('header-user-one')
