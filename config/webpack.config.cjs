@@ -94,7 +94,7 @@ function createConfig(options) {
       test: /\.js$/,
       header: `var scriptCode = '(' + function() {
         function bootm1pro() {
-          require.async("//cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.min.js").then(vv => {
+          _require.async("//cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.min.js").then(vv => {
             window.Vue = vv;
       `,
       footer: `
