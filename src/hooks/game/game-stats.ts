@@ -171,6 +171,7 @@ export class GameStats {
     private root: JQuery<HTMLElement>;
     private pool: JQuery<HTMLElement>;
     private chanceItems: ChanceItems;
+    private chancePoolWatcherBound = false;
 
     constructor(public base: Vue, private state: GameState) {
         this.jq = jQuery(base.$el);
@@ -209,16 +210,19 @@ export class GameStats {
         };
         this.state.$watch('gameOver', v => v && this.root.hide() && debug('gameover'));
 
-        if (this.state.storage.config.chance_cards) {
-            debug('wait stats pool')
-            this.state.$watch('chancePool', v => {
-                debug('stats pool', JSON.parse(JSON.stringify(v)))
-                if (!this.chanceItems && v) {
-                    this.chanceItems = new ChanceItems({ propsData: { chanceCards: v, chanceCardsInit: this.state.storage.config.chance_cards, players: () => this.state.storage.status.players, party: this.state.party } });
-                    this.pool.append(this.chanceItems.$mount().$el).show();
-                }
-            }, { immediate: true });
-        }
+        this.state.$watch(() => this.state.chanceCardsConfig.length, len => {
+            if (len > 0 && !this.chancePoolWatcherBound) {
+                this.chancePoolWatcherBound = true;
+                debug('wait stats pool');
+                this.state.$watch('chancePool', v => {
+                    debug('stats pool', JSON.parse(JSON.stringify(v)));
+                    if (!this.chanceItems && v) {
+                        this.chanceItems = new ChanceItems({ propsData: { chanceCards: v, chanceCardsInit: this.state.chanceCardsConfig, players: () => this.state.storage.status.players, party: this.state.party } });
+                        this.pool.append(this.chanceItems.$mount().$el).show();
+                    }
+                }, { immediate: true });
+            }
+        }, { immediate: true });
     }
 
     private initContractsTab() {

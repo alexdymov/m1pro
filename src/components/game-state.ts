@@ -156,6 +156,10 @@ export default class GameState extends Vue {
     ongoingContract: ContractInfo = null;
     vmfields: Vue;
 
+    public get chanceCardsConfig(): Array<ChanceCard> {
+        return this.resolveChanceCardsConfig();
+    }
+
     created() {
         const gameSettings = localStorage.getItem('game_settings');
         const initSettings = new GameSettings();
@@ -228,22 +232,19 @@ export default class GameState extends Vue {
                     const firstPacket = ref.firstHandledPacket === 0;
                     if (firstPacket) {
                         ref.firstHandledPacket = e.msg.id;
-                        ref.oldChancePool = ref.storage.config.chance_cards && [...ref.storage.config.chance_cards].map(c => ({ ...c, out: false })) || [];
+                        ref.oldChancePool = ref.chanceCardsConfig.length
+                            ? [...ref.chanceCardsConfig].map(c => ({ ...c, out: false }))
+                            : [];
                         ref.loadDemo(e.msg.id).then(msgs => {
                             debug('start process old packets', msgs.length, 'until', ref.firstHandledPacket);
+                            let reachedCurrentPacket = false;
                             msgs.some(msg => {
                                 // const oldpl = msg.events[0]?.user_id;
                                 // debug('old packet', `#${msg.id}`, oldpl,
                                 //     ref.players.find(pl => oldpl === pl.user_id)?.nick,
                                 //     msg.events?.map(event => `${event.type}=${JSON.stringify(event)}`), JSON.parse(JSON.stringify(msg)));
                                 if (msg.id === ref.firstHandledPacket) {
-                                    debug('stop process old packets', ref)
-                                    const pool = [...ref.oldChancePool];
-                                    ref.pendingChancePool.forEach(pc => {
-                                        pool[pc].out = true;
-                                    });
-                                    pool.forEach(card => ref.chancePool.push(card));
-                                    ref.chancePoolInit = true;
+                                    reachedCurrentPacket = true;
                                     return true;
                                 }
                                 try {
@@ -252,6 +253,21 @@ export default class GameState extends Vue {
                                     console.error('error handling demo packet', msg, error);
                                 }
                             });
+                            if (!reachedCurrentPacket) {
+                                debug('stop process old packets by fallback', ref.firstHandledPacket);
+                            } else {
+                                debug('stop process old packets', ref);
+                            }
+                            if (!ref.chancePoolInit) {
+                                const pool = [...ref.oldChancePool];
+                                ref.pendingChancePool.forEach(pc => {
+                                    if (pool[pc]) {
+                                        pool[pc].out = true;
+                                    }
+                                });
+                                pool.forEach(card => ref.chancePool.push(card));
+                                ref.chancePoolInit = true;
+                            }
                         });
                     }
                     oldpp.apply(v, arguments);
@@ -355,7 +371,9 @@ export default class GameState extends Vue {
                     if (!this.storage.about.is_m1tv && event.user_id !== this.user.user_id && current) {
                         this.loadDemo(packet.msg.id).then(msgs => {
                             const wh = msgs.find(msg => msg.id === packet.msg.id);
-                            this.wormholeDestinations.push(...wh.status.current_move.wormhole_destinations);
+                            if (wh?.status?.current_move?.wormhole_destinations) {
+                                this.wormholeDestinations.push(...wh.status.current_move.wormhole_destinations);
+                            }
                         });
                     }
                     break;
@@ -371,9 +389,11 @@ export default class GameState extends Vue {
                             if (event.user_id !== this.user.user_id && event.to !== this.user.user_id) {
                                 this.loadDemo(packet.msg.id).then(msgs => {
                                     const contract = msgs.find(msg => msg.id === packet.msg.id);
-                                    this.contractEvents.push({ ...contract.status.current_move.contract, time: contract.time.ts_now, result: 0, status: contract.status });
-                                    if (this.settings.showLiveContracts) {
-                                        this.ongoingContract = { ...contract.status.current_move.contract, time: contract.time.ts_now, result: 0, status: null };
+                                    if (contract?.status?.current_move?.contract) {
+                                        this.contractEvents.push({ ...contract.status.current_move.contract, time: contract.time.ts_now, result: 0, status: contract.status });
+                                        if (this.settings.showLiveContracts) {
+                                            this.ongoingContract = { ...contract.status.current_move.contract, time: contract.time.ts_now, result: 0, status: null };
+                                        }
                                     }
                                 });
                             } else {
@@ -405,7 +425,7 @@ export default class GameState extends Vue {
 
                 case 'chance':
                     roll.events.push(event);
-                    const chanceCard = this.storage.config.chance_cards[event.chance_id];
+                    const chanceCard = this.chanceCardsConfig[event.chance_id] || { type: 'unknown', text: '' };
 
                     if (current) {
                         this.currentChanceCards.push(new CurrentChanceCard(teleport ? teleport.mean_position : this.currentEvents.getLastPosition(), chanceCard, event.user_id, event.money ?? event.sum));
@@ -418,7 +438,7 @@ export default class GameState extends Vue {
                             this.pendingChancePool.push(event.chance_id);
                         }
                     } else {
-                        this.oldChancePool[event.chance_id].out = true;
+                        this.oldChancePool[event.chance_id] && (this.oldChancePool[event.chance_id].out = true);
                         if (this.oldChancePool.filter(oc => !oc.out).length === 0) {
                             this.restartChancePool();
                         }
@@ -524,9 +544,98 @@ export default class GameState extends Vue {
                 } else if (tries < 3) {
                     return this.loadDemo(id, ++tries);
                 } else {
-                    throw new Error('out of demo load tries');
+                    debug('demo packet not found after retries', id, this.storage.about.gs_id, this.storage.about.gs_game_id);
+                    return [];
                 }
-            }).fail((err) => console.error('failed to load demo', err));
+            }).fail((err) => {
+                debug('failed to load demo', err);
+                return [];
+            });
+    }
+
+    private resolveChanceCardsConfig(): Array<ChanceCard> {
+        const cfg: any = this.storage?.config;
+        const queue: any[] = [cfg, this.storage, (window as any)?.API?.table?.storage].filter(Boolean);
+        const seen = new Set<any>();
+        const queued = new Set<any>(queue);
+        let depth = 0;
+
+        const enqueue = (value: any): void => {
+            if (!value || typeof value !== 'object' || seen.has(value) || queued.has(value)) {
+                return;
+            }
+            queue.push(value);
+            queued.add(value);
+        };
+
+        const pushCandidate = (candidate: any): Array<ChanceCard> => {
+            const normalized = this.normalizeChanceCards(candidate);
+            if (normalized.length) {
+                return normalized;
+            }
+            return [];
+        };
+
+        while (queue.length) {
+            depth++;
+            if (depth > 6000) {
+                break;
+            }
+            const current = queue.shift();
+            if (!current || typeof current !== 'object' || seen.has(current)) {
+                continue;
+            }
+            seen.add(current);
+
+            const directCandidates = [
+                (current as any).chance_cards,
+                (current as any).chanceCards,
+                (current as any).cards?.chance,
+                (current as any).chance?.cards,
+                (current as any).chances?.cards,
+                (current as any).game_chance_cards
+            ];
+            for (const candidate of directCandidates) {
+                const normalized = pushCandidate(candidate);
+                if (normalized.length) {
+                    return normalized;
+                }
+            }
+
+            for (const key of Reflect.ownKeys(current)) {
+                let value: any;
+                try {
+                    value = (current as any)[key as any];
+                } catch (_e) {
+                    continue;
+                }
+                const normalized = pushCandidate(value);
+                if (normalized.length) {
+                    return normalized;
+                }
+                enqueue(value);
+            }
+        }
+        return [];
+    }
+
+    private normalizeChanceCards(value: any): Array<ChanceCard> {
+        const list = Array.isArray(value)
+            ? value
+            : (value && typeof value === 'object' ? Object.keys(value).sort((a, b) => Number(a) - Number(b)).map(k => value[k]) : []);
+        if (!list.length) {
+            return [];
+        }
+        if (!list.some((card: any) => card && typeof card.type === 'string')) {
+            return [];
+        }
+        return list.map((card: any) => ({
+            type: card?.type ?? 'unknown',
+            text: card?.text ?? '',
+            range: card?.range,
+            rangeStep: card?.rangeStep,
+            sum: card?.sum
+        }));
     }
 
     private getBirthdayMoneyFor(bpl: Player, sum: number): number {
@@ -586,7 +695,7 @@ export default class GameState extends Vue {
                 }
                 debug('pend pool', JSON.parse(JSON.stringify(this.pendingChancesToRemove)))
                 if (this.pendingChancesToRemove.length) {
-                    this.pendingChancesToRemove.forEach(v => this.chancePool[v].out = true);
+                    this.pendingChancesToRemove.forEach(v => this.chancePool[v] && (this.chancePool[v].out = true));
                     if (this.chancePool.filter(c => !c.out).length === 0) {
                         this.chancePool.forEach(c => c.out = false);
                     }
@@ -598,7 +707,32 @@ export default class GameState extends Vue {
                 }
             }
         });
+        this.$watch(() => this.chanceCardsConfig.length, len => {
+            if (len > 0) {
+                this.ensureChancePoolInitialized();
+            }
+        }, { immediate: true });
         this.loaded = true;
+    }
+
+    private ensureChancePoolInitialized() {
+        if (this.chancePoolInit) {
+            return;
+        }
+        const configCards = this.chanceCardsConfig;
+        if (!configCards.length) {
+            return;
+        }
+        this.oldChancePool = [...configCards].map(c => ({ ...c, out: false }));
+        const pool = [...this.oldChancePool];
+        this.pendingChancePool.forEach(idx => {
+            if (pool[idx]) {
+                pool[idx].out = true;
+            }
+        });
+        this.chancePool.splice(0, this.chancePool.length, ...pool);
+        this.chancePoolInit = true;
+        debug('chance pool initialized', pool.length);
     }
 
     private loadPlayers() {

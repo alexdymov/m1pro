@@ -1,3 +1,14 @@
 {
-    
+    "manifest_version": 3,
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "script.page.main.js",
+                "script.page.game.js"
+            ],
+            "matches": [
+                "https://monopoly-one.com/*"
+            ]
+        }
+    ]
 }

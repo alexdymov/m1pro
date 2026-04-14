@@ -32,7 +32,8 @@
     "jquery": "^2.2.4",
     "lodash": "^4.17.21",
     "p-throttle": "^5.0.0",
-    "vue-class-component": "^7.2.6"
+    "vue-class-component": "^7.2.6",
+    "webpack-sources": "^3.3.4"
   },
   "devDependencies": {
     "@babel/core": "7.15.5",
