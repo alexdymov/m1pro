@@ -83,7 +83,8 @@ function createConfig(options) {
           main: './src/index.main.loader.ts',
           game: './src/index.game.loader.ts',
           'page.main': './src/index.main.ts',
-          'page.game': './src/index.game.ts'
+          'page.game': './src/index.game.ts',
+          background: './src/background.ts'
         },
         output: { filename: 'script.[name].js', path, publicPath: '' }
       };
@@ -126,6 +127,10 @@ function createConfig(options) {
       patterns: [{
         context: './assets/images',
         from: '*.png',
+        to: ''
+      }, {
+        context: './assets/manifest',
+        from: 'rules.json',
         to: ''
       }]
     }));

@@ -30,6 +30,16 @@
                 "script.main.js"
             ],
             "run_at": "document_start"
+        },
+        {
+            "matches": [
+                "https://demos.monopoly-one.com/*"
+            ],
+            "js": [
+                "script.main.js"
+            ],
+            "run_at": "document_start",
+            "all_frames": true
         }
     ]
 }
