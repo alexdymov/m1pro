@@ -300,6 +300,8 @@ export interface AsyncStorage {
 }
 
 export interface GameEvent {
+    /** Server-side id for this event (matches the same field in `.mid` lines) */
+    _id?: string
     type: string
     user_id: number
     to?: number
@@ -311,6 +313,11 @@ export interface GameEvent {
     mean_position?: number
     field_id?: number
     move_reverse?: number
+    /** Present on some server versions for contract events */
+    out_fields?: number[]
+    out_money?: number
+    in_fields?: number[]
+    in_money?: number
 }
 
 export interface ChanceCard {
@@ -360,6 +367,10 @@ export interface ContractInfo extends ContractEventData {
     time: number
     result: number
     status: GameStatus
+    /** Same as WebSocket `packet.msg.id` — each `.mid` line uses this as `id`. */
+    packetId?: number
+    /** `events[].type === 'contract'` entry `_id` — secondary key to find the line in `.mid` */
+    contractEventId?: string
 }
 
 export interface ConfigField {

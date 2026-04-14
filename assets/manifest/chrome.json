@@ -1,3 +1,32 @@
 {
-    
+    "manifest_version": 3,
+    "permissions": [
+        "declarativeNetRequest",
+        "declarativeNetRequestWithHostAccess"
+    ],
+    "host_permissions": [
+        "https://demos.monopoly-one.com/*"
+    ],
+    "declarative_net_request": {
+        "rule_resources": [{
+            "id": "ruleset_1",
+            "enabled": true,
+            "path": "rules.json"
+        }]
+    },
+    "background": {
+        "service_worker": "script.background.js"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "script.page.main.js",
+                "script.page.game.js"
+            ],
+            "matches": [
+                "https://monopoly-one.com/*",
+                "https://demos.monopoly-one.com/*"
+            ]
+        }
+    ]
 }

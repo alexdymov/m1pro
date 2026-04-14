@@ -132,7 +132,10 @@ export class ShowFieldMove {
     }
 
     private isPosJail(meanPos: number) {
-        const byChance = !!this.state.currentEvents.events.find(e => e.type === 'chance' && this.state.storage.config.chance_cards[e.chance_id].type === 'jail');
+        const byChance = !!this.state.currentEvents.events.find(e => {
+            const card = this.state.chanceCardsConfig[e.chance_id];
+            return e.type === 'chance' && card?.type === 'jail';
+        });
         return meanPos === 30 || byChance;
     }
 

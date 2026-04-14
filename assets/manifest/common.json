@@ -1,5 +1,4 @@
 {
-    "manifest_version": 2,
     "icons": {
         "16": "icon16.png",
         "32": "icon32.png",
@@ -31,6 +30,16 @@
                 "script.main.js"
             ],
             "run_at": "document_start"
+        },
+        {
+            "matches": [
+                "https://demos.monopoly-one.com/*"
+            ],
+            "js": [
+                "script.main.js"
+            ],
+            "run_at": "document_start",
+            "all_frames": true
         }
     ]
 }

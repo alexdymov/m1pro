@@ -77,10 +77,23 @@ function createConfig(options) {
   } else {
     const subfolder = options.prod ? '/temp' : '';
     const path = `${dist}${subfolder}/${options.target}`;
-    tcfg = {
-      entry: { main: './src/index.main.ts', game: './src/index.game.ts' },
-      output: { filename: 'script.[name].js', path, publicPath: '' }
-    };
+    if (options.target === 'chrome') {
+      tcfg = {
+        entry: {
+          main: './src/index.main.loader.ts',
+          game: './src/index.game.loader.ts',
+          'page.main': './src/index.main.ts',
+          'page.game': './src/index.game.ts',
+          background: './src/background.ts'
+        },
+        output: { filename: 'script.[name].js', path, publicPath: '' }
+      };
+    } else {
+      tcfg = {
+        entry: { main: './src/index.main.ts', game: './src/index.game.ts' },
+        output: { filename: 'script.[name].js', path, publicPath: '' }
+      };
+    }
     plugins.push(new GenerateJsonWebpackPlugin(
       `manifest.json`,
       merge(
@@ -92,21 +105,32 @@ function createConfig(options) {
       2
     ));
     // to use with webpack 5+ and wrapper 2.2- do apply https://github.com/levp/wrapper-webpack-plugin/pull/16
-    plugins.push(new WrapperPlugin({
-      test: /\.js$/,
-      header: `var scriptCode = '(' + function() {
+    if (options.target !== 'chrome') {
+      plugins.push(new WrapperPlugin({
+        test: /\.js$/,
+        header: `var scriptCode = '(' + function() {
         ` + wrapper.header,
-      footer: wrapper.footer + `
+        footer: wrapper.footer + `
         } + ')();';
         var script = document.createElement('script');
         script.textContent = scriptCode;
         (document.head||document.documentElement).appendChild(script);
         script.remove();`
-    }));
+      }));
+    } else {
+      plugins.push(new WrapperPlugin({
+        test: /^script\.page\.(main|game)\.js$/,
+        ...wrapper
+      }));
+    }
     plugins.push(new CopyPlugin({
       patterns: [{
         context: './assets/images',
         from: '*.png',
+        to: ''
+      }, {
+        context: './assets/manifest',
+        from: 'rules.json',
         to: ''
       }]
     }));

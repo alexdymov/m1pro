@@ -7,11 +7,12 @@ module.exports = {
   author,
   source: repository.url,
   match: [
-    'https://monopoly-one.com/*'
+    'https://monopoly-one.com/*',
+    'https://demos.monopoly-one.com/*'
   ],
   require: [],
   grant: [
-    'none'
+    'GM_xmlhttpRequest'
   ],
   'run-at': 'document-start'
 }

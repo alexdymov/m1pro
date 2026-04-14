@@ -1,4 +1,5 @@
 {
+    "manifest_version": 2,
     "applications": {
 		"gecko": {
 			"id": "{8c17e428-a3f2-4184-91cd-1e011d8bc829}"

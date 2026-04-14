@@ -2,7 +2,7 @@ import Component from "vue-class-component";
 import Vue from 'vue';
 import { AsyncStorage, GameField, GamePlayer, Gender, Rank, UserInfoLong, BanInfo, Friendship, GameEvent, ChanceCard, CurrentChanceCard, ChanceCardState, ContractEventData, ContractInfo, GameStatus, ConfigField, ConfigGroup } from '../shared/beans';
 import merge from "lodash/merge";
-import { debug } from '../util/debug';
+import { contractDebug, debug } from '../util/debug';
 import cloneDeep from "lodash/cloneDeep";
 import extend from "lodash/extend";
 
@@ -153,8 +153,14 @@ export default class GameState extends Vue {
     demoEvents = new PacketPlayerEvents();
     wormholeDestinations = new Array<number>();
     contractEvents = new Array<ContractInfo>();
+    /** Prevents overlapping iframe loads when opening Договоры tab repeatedly. */
+    observerContractHistoryLoadInFlight = false;
     ongoingContract: ContractInfo = null;
     vmfields: Vue;
+
+    public get chanceCardsConfig(): Array<ChanceCard> {
+        return this.resolveChanceCardsConfig();
+    }
 
     created() {
         const gameSettings = localStorage.getItem('game_settings');
@@ -228,22 +234,19 @@ export default class GameState extends Vue {
                     const firstPacket = ref.firstHandledPacket === 0;
                     if (firstPacket) {
                         ref.firstHandledPacket = e.msg.id;
-                        ref.oldChancePool = ref.storage.config.chance_cards && [...ref.storage.config.chance_cards].map(c => ({ ...c, out: false })) || [];
+                        ref.oldChancePool = ref.chanceCardsConfig.length
+                            ? [...ref.chanceCardsConfig].map(c => ({ ...c, out: false }))
+                            : [];
                         ref.loadDemo(e.msg.id).then(msgs => {
                             debug('start process old packets', msgs.length, 'until', ref.firstHandledPacket);
+                            let reachedCurrentPacket = false;
                             msgs.some(msg => {
                                 // const oldpl = msg.events[0]?.user_id;
                                 // debug('old packet', `#${msg.id}`, oldpl,
                                 //     ref.players.find(pl => oldpl === pl.user_id)?.nick,
                                 //     msg.events?.map(event => `${event.type}=${JSON.stringify(event)}`), JSON.parse(JSON.stringify(msg)));
                                 if (msg.id === ref.firstHandledPacket) {
-                                    debug('stop process old packets', ref)
-                                    const pool = [...ref.oldChancePool];
-                                    ref.pendingChancePool.forEach(pc => {
-                                        pool[pc].out = true;
-                                    });
-                                    pool.forEach(card => ref.chancePool.push(card));
-                                    ref.chancePoolInit = true;
+                                    reachedCurrentPacket = true;
                                     return true;
                                 }
                                 try {
@@ -252,6 +255,21 @@ export default class GameState extends Vue {
                                     console.error('error handling demo packet', msg, error);
                                 }
                             });
+                            if (!reachedCurrentPacket) {
+                                debug('stop process old packets by fallback', ref.firstHandledPacket);
+                            } else {
+                                debug('stop process old packets', ref);
+                            }
+                            if (!ref.chancePoolInit) {
+                                const pool = [...ref.oldChancePool];
+                                ref.pendingChancePool.forEach(pc => {
+                                    if (pool[pc]) {
+                                        pool[pc].out = true;
+                                    }
+                                });
+                                pool.forEach(card => ref.chancePool.push(card));
+                                ref.chancePoolInit = true;
+                            }
                         });
                     }
                     oldpp.apply(v, arguments);
@@ -353,10 +371,19 @@ export default class GameState extends Vue {
                 case 'wormhole_opened':
                     pl.expenses += this.storage.config.WORMHOLE_EXTRA_DESTINATION_COST * (event.destinations_count - WORMHOLE_DEFAULT_FREE_DESTINATIONS);
                     if (!this.storage.about.is_m1tv && event.user_id !== this.user.user_id && current) {
-                        this.loadDemo(packet.msg.id).then(msgs => {
-                            const wh = msgs.find(msg => msg.id === packet.msg.id);
-                            this.wormholeDestinations.push(...wh.status.current_move.wormhole_destinations);
-                        });
+                        const whDest =
+                            (this.storage.status as any)?.current_move?.wormhole_destinations ||
+                            (packet.msg.status as any)?.current_move?.wormhole_destinations;
+                        if (Array.isArray(whDest) && whDest.length) {
+                            this.wormholeDestinations.push(...whDest);
+                        } else {
+                            this.loadDemo(packet.msg.id).then(msgs => {
+                                const wh = msgs.find(msg => msg.id === packet.msg.id);
+                                if (wh?.status?.current_move?.wormhole_destinations) {
+                                    this.wormholeDestinations.push(...wh.status.current_move.wormhole_destinations);
+                                }
+                            });
+                        }
                     }
                     break;
                 case 'wormhole_used':
@@ -369,13 +396,25 @@ export default class GameState extends Vue {
                     if (current) {
                         if (!this.storage.about.is_m1tv) {
                             if (event.user_id !== this.user.user_id && event.to !== this.user.user_id) {
-                                this.loadDemo(packet.msg.id).then(msgs => {
-                                    const contract = msgs.find(msg => msg.id === packet.msg.id);
-                                    this.contractEvents.push({ ...contract.status.current_move.contract, time: contract.time.ts_now, result: 0, status: contract.status });
-                                    if (this.settings.showLiveContracts) {
-                                        this.ongoingContract = { ...contract.status.current_move.contract, time: contract.time.ts_now, result: 0, status: null };
-                                    }
+                                const { data: ctr, status: st } = this.getObserverContractPayload(packet, event);
+                                const pid = packet.msg.id;
+                                const contractEventId = event._id;
+                                contractDebug('contract event (observer): pushed row', {
+                                    packetId: pid,
+                                    contractEventId,
+                                    initialCtr: ctr,
+                                    eventSummary: { type: event.type, user_id: event.user_id, to: event.to, _id: event._id }
                                 });
+                                this.contractEvents.push({
+                                    ...ctr,
+                                    time: packet.msg.time.ts_now,
+                                    result: 0,
+                                    status: st,
+                                    packetId: pid,
+                                    contractEventId
+                                });
+                                // Defer TableContract modal until `.mid` enriches — WS alone often has no fields/money for observers.
+                                this.enrichObserverContractFromDemo(pid, contractEventId);
                             } else {
                                 this.ongoingContract = null;
                                 this.contractEvents.push({ ...packet.msg.status.current_move.contract, time: packet.msg.time.ts_now, result: 0, status: packet.msg.status });
@@ -405,7 +444,7 @@ export default class GameState extends Vue {
 
                 case 'chance':
                     roll.events.push(event);
-                    const chanceCard = this.storage.config.chance_cards[event.chance_id];
+                    const chanceCard = this.chanceCardsConfig[event.chance_id] || { type: 'unknown', text: '' };
 
                     if (current) {
                         this.currentChanceCards.push(new CurrentChanceCard(teleport ? teleport.mean_position : this.currentEvents.getLastPosition(), chanceCard, event.user_id, event.money ?? event.sum));
@@ -418,7 +457,7 @@ export default class GameState extends Vue {
                             this.pendingChancePool.push(event.chance_id);
                         }
                     } else {
-                        this.oldChancePool[event.chance_id].out = true;
+                        this.oldChancePool[event.chance_id] && (this.oldChancePool[event.chance_id].out = true);
                         if (this.oldChancePool.filter(oc => !oc.out).length === 0) {
                             this.restartChancePool();
                         }
@@ -515,18 +554,594 @@ export default class GameState extends Vue {
         return diceRollDouble;
     }
 
-    public loadDemo(id?: number, tries = 0): JQueryPromise<Array<UpdateAction>> {
-        return $.get(`https://demos.monopoly-one.com/dl/${this.storage.about.gs_id}/${this.storage.about.gs_game_id}.mid?_=${new Date().getTime()}`)
-            .then((res: string) => {
-                const lines: Array<UpdateAction> = res.split("\n").map(line => JSON.parse(line));
-                if (!id || (id && lines.find(msg => msg.id === id))) {
-                    return lines;
-                } else if (tries < 3) {
-                    return this.loadDemo(id, ++tries);
-                } else {
-                    throw new Error('out of demo load tries');
+    /**
+     * Map API/demo contract objects to {@link ContractEventData} (handles alternate property names).
+     */
+    private normalizeContractFromRaw(raw: any): ContractEventData | null {
+        if (!raw || typeof raw !== 'object') {
+            return null;
+        }
+        const from = raw.from ?? raw.user_id_from ?? raw.userFrom;
+        const to = raw.to ?? raw.user_id_to ?? raw.userTo;
+        if (typeof from !== 'number' || typeof to !== 'number') {
+            return null;
+        }
+        const outFields = raw.out_fields ?? raw.field_ids_from ?? raw.fields_from;
+        const inFields = raw.in_fields ?? raw.field_ids_to ?? raw.fields_to;
+        return {
+            from,
+            to,
+            out_fields: Array.isArray(outFields) ? [...outFields] : [],
+            out_money: Number(raw.out_money ?? raw.money_from ?? 0) || 0,
+            in_fields: Array.isArray(inFields) ? [...inFields] : [],
+            in_money: Number(raw.in_money ?? raw.money_to ?? 0) || 0
+        };
+    }
+
+    /**
+     * Prefer live WebSocket `status.current_move.contract` (present after the game's packetProcess).
+     * Fall back to fields on the contract event, then minimal from/to so observers see trades without demos.monopoly-one.com.
+     */
+    private getObserverContractPayload(packet: Packet, event: GameEvent): { data: ContractEventData; status: GameStatus } {
+        const cmStorage = (this.storage.status as any)?.current_move;
+        const cmPacket = (packet.msg.status as any)?.current_move;
+        const fromStorage = this.normalizeContractFromRaw(cmStorage?.contract);
+        if (fromStorage) {
+            contractDebug('getObserverContractPayload: branch=storage.current_move.contract', {
+                packetId: packet.msg.id,
+                data: fromStorage,
+                current_moveKeys: cmStorage && Object.keys(cmStorage)
+            });
+            return { data: fromStorage, status: this.storage.status };
+        }
+        const fromPacket = this.normalizeContractFromRaw(cmPacket?.contract);
+        if (fromPacket) {
+            contractDebug('getObserverContractPayload: branch=packet.msg.status.current_move.contract', {
+                packetId: packet.msg.id,
+                data: fromPacket,
+                current_moveKeys: cmPacket && Object.keys(cmPacket)
+            });
+            return { data: fromPacket, status: packet.msg.status };
+        }
+        const st = (packet.msg.status ?? this.storage.status) as GameStatus;
+        const ev: any = event;
+        if (ev.out_fields !== undefined || ev.out_money !== undefined || ev.in_fields !== undefined || ev.in_money !== undefined) {
+            const data = {
+                from: event.user_id,
+                to: event.to ?? event.user_id,
+                out_fields: Array.isArray(ev.out_fields) ? [...ev.out_fields] : [],
+                out_money: ev.out_money ?? 0,
+                in_fields: Array.isArray(ev.in_fields) ? [...ev.in_fields] : [],
+                in_money: ev.in_money ?? 0
+            };
+            contractDebug('getObserverContractPayload: branch=event fields on contract event', {
+                packetId: packet.msg.id,
+                eventType: event.type,
+                event_id: event._id,
+                data
+            });
+            return { data, status: st };
+        }
+        contractDebug('getObserverContractPayload: branch=fallback zeros (no contract on storage/packet/event)', {
+            packetId: packet.msg.id,
+            eventType: event.type,
+            event_id: event._id,
+            hasStorageContract: !!cmStorage?.contract,
+            hasPacketContract: !!cmPacket?.contract,
+            rawEventKeys: ev && typeof ev === 'object' ? Object.keys(ev) : []
+        });
+        return {
+            data: {
+                from: event.user_id,
+                to: event.to ?? event.user_id,
+                out_fields: [],
+                out_money: 0,
+                in_fields: [],
+                in_money: 0
+            },
+            status: st
+        };
+    }
+
+    /**
+     * One `.mid` line = one WebSocket packet: same numeric `id` as `packet.msg.id`.
+     * If needed, the `contract` event's `_id` also appears on that line's `events` (e.g. FHDpqTyqAA8).
+     */
+    private findMidLineWithContract(
+        msgs: Array<UpdateAction>,
+        packetId: number,
+        contractEventId?: string
+    ): UpdateAction | undefined {
+        const hasContract = (line: UpdateAction): boolean => {
+            return this.extractContractFromMidLine(line, true) !== null;
+        };
+        const byPacketId = msgs.find(m => m.id === packetId);
+        const ids = msgs.map(m => m.id);
+        contractDebug('findMidLineWithContract', {
+            packetId,
+            contractEventId,
+            lineCount: msgs.length,
+            idMin: ids.length ? Math.min(...ids) : undefined,
+            idMax: ids.length ? Math.max(...ids) : undefined,
+            hasLineForPacketId: !!byPacketId,
+            packetLineHasExtractableContract: byPacketId ? hasContract(byPacketId) : false
+        });
+        if (byPacketId && hasContract(byPacketId)) {
+            contractDebug('findMidLineWithContract: matched by packet id', { lineId: byPacketId.id });
+            return byPacketId;
+        }
+        if (contractEventId) {
+            for (const line of msgs) {
+                const evs = line.events;
+                if (!evs?.some(e => e.type === 'contract' && e._id === contractEventId)) {
+                    continue;
                 }
-            }).fail((err) => console.error('failed to load demo', err));
+                if (hasContract(line)) {
+                    contractDebug('findMidLineWithContract: matched by contract event _id', {
+                        lineId: line.id,
+                        contractEventId
+                    });
+                    return line;
+                }
+            }
+            contractDebug('findMidLineWithContract: no line with matching contract _id', { contractEventId });
+        }
+        if (byPacketId) {
+            contractDebug('findMidLineWithContract: fallback to line by packet id without extractable contract', {
+                lineId: byPacketId.id,
+                current_move: (byPacketId as any).status?.current_move,
+                contractEvents: byPacketId.events?.filter(e => e.type === 'contract' || e.type === 'contract_details')
+            });
+        } else {
+            contractDebug('findMidLineWithContract: no line with id === packetId', { packetId });
+        }
+        return byPacketId;
+    }
+
+    /** Prefer `status.current_move.contract`; else the `contract` event on the same packet line. */
+    private extractContractFromMidLine(line: UpdateAction, silent = false): ContractEventData | null {
+        const rawCm = (line as any)?.status?.current_move?.contract;
+        const fromStatus = this.normalizeContractFromRaw(rawCm);
+        if (fromStatus) {
+            if (!silent) {
+                contractDebug('extractContractFromMidLine: from status.current_move.contract', {
+                    lineId: line.id,
+                    rawCm,
+                    normalized: fromStatus
+                });
+            }
+            return fromStatus;
+        }
+        const ev = line.events?.find(e => e.type === 'contract');
+        if (!ev) {
+            if (!silent) {
+                contractDebug('extractContractFromMidLine: no contract on line', {
+                    lineId: line.id,
+                    hasCurrentMove: !!(line as any)?.status?.current_move,
+                    eventTypes: line.events?.map(e => e.type)
+                });
+            }
+            return null;
+        }
+        const fromEv = this.normalizeContractFromRaw({
+            from: ev.user_id,
+            to: ev.to,
+            out_fields: ev.out_fields,
+            out_money: ev.out_money,
+            in_fields: ev.in_fields,
+            in_money: ev.in_money
+        });
+        if (!silent) {
+            contractDebug('extractContractFromMidLine: from events[].type=contract', {
+                lineId: line.id,
+                event_id: ev._id,
+                rawEvent: ev,
+                normalized: fromEv
+            });
+        }
+        return fromEv;
+    }
+
+    /**
+     * Build full contract history from parsed `.mid` lines (same fields as enrichObserverContractFromDemo).
+     * Walks packets in order; `contract_accepted` / `contract_declined` update the last open trade.
+     */
+    private buildObserverContractHistoryFromDemoLines(msgs: Array<UpdateAction>): ContractInfo[] {
+        const rows: ContractInfo[] = [];
+        const ordered = msgs.slice().sort((a, b) => a.id - b.id);
+        for (const line of ordered) {
+            for (const event of line.events ?? []) {
+                if (event.type === 'contract') {
+                    const full = this.extractContractFromMidLine(line, true);
+                    if (!full) {
+                        continue;
+                    }
+                    rows.push({
+                        ...full,
+                        time: line.time?.ts_now ?? 0,
+                        result: 0,
+                        status: line.status,
+                        packetId: line.id,
+                        contractEventId: event._id
+                    });
+                } else if (event.type === 'contract_accepted') {
+                    if (rows.length) {
+                        rows[rows.length - 1].result = 1;
+                    }
+                } else if (event.type === 'contract_declined') {
+                    if (rows.length) {
+                        rows[rows.length - 1].result = 2;
+                    }
+                }
+            }
+        }
+        return rows;
+    }
+
+    /** Replace {@link contractEvents} with demo-backed rows (from `.mid`). */
+    private applyObserverContractHistoryFromDemo(msgs: Array<UpdateAction>): void {
+        if (this.storage.about.is_m1tv || !msgs.length) {
+            return;
+        }
+        const rows = this.buildObserverContractHistoryFromDemoLines(msgs);
+        if (!rows.length) {
+            return;
+        }
+        this.contractEvents.splice(0, this.contractEvents.length, ...rows);
+        contractDebug('applyObserverContractHistoryFromDemo', { rows: rows.length });
+        console.info('[M1PRO demo] observer contract history from .mid', { trades: rows.length });
+    }
+
+    /**
+     * Fetches `.mid` and merges the line for this trade (`packet.msg.id` = line `id`, optional `event._id`).
+     */
+    private enrichObserverContractFromDemo(packetId: number, contractEventId?: string): void {
+        if (!this.storage?.about?.gs_id || !this.storage?.about?.gs_game_id) {
+            contractDebug('enrichObserverContractFromDemo: aborted (missing gs_id / gs_game_id)', {
+                gs_id: this.storage?.about?.gs_id,
+                gs_game_id: this.storage?.about?.gs_game_id
+            });
+            return;
+        }
+        contractDebug('enrichObserverContractFromDemo: start', {
+            packetId,
+            contractEventId,
+            gs_id: this.storage.about.gs_id,
+            gs_game_id: this.storage.about.gs_game_id
+        });
+        this.loadDemo(packetId).then(msgs => {
+            contractDebug('enrichObserverContractFromDemo: loadDemo resolved', {
+                packetId,
+                msgCount: msgs.length,
+                contractRowsSnapshot: this.contractEvents.map(c => ({
+                    packetId: c.packetId,
+                    contractEventId: c.contractEventId,
+                    out_fields: c.out_fields,
+                    out_money: c.out_money,
+                    in_fields: c.in_fields,
+                    in_money: c.in_money
+                }))
+            });
+            const line = this.findMidLineWithContract(msgs, packetId, contractEventId);
+            const full = line ? this.extractContractFromMidLine(line) : null;
+            if (line) {
+                console.log('[M1PRO demo] trade for WebSocket packet id', packetId, {
+                    demoLineId: line.id,
+                    contractEventId: contractEventId ?? null,
+                    normalizedContract: full,
+                    demoLine: line
+                });
+            } else {
+                console.warn('[M1PRO demo] no .mid line for WebSocket packet id', packetId, {
+                    midLineCount: msgs.length,
+                    idMinMax: msgs.length
+                        ? { min: Math.min(...msgs.map(m => m.id)), max: Math.max(...msgs.map(m => m.id)) }
+                        : null
+                });
+            }
+            if (!full || !line) {
+                contractDebug('enrichObserverContractFromDemo: FAILED — no extractable contract', {
+                    packetId,
+                    contractEventId,
+                    hasLine: !!line,
+                    full,
+                    demoLineIdsSample: msgs.slice(0, 3).map(m => m.id),
+                    demoLineIdsTail: msgs.slice(-3).map(m => m.id)
+                });
+                debug('enrichObserverContractFromDemo: no contract in demo line', packetId, contractEventId, !!line);
+                return;
+            }
+            const i = this.contractEvents.findIndex(
+                c => c.packetId === packetId && (contractEventId === undefined || c.contractEventId === contractEventId)
+            );
+            if (i === -1) {
+                contractDebug('enrichObserverContractFromDemo: FAILED — findIndex === -1 (row not found)', {
+                    packetId,
+                    contractEventId,
+                    rows: this.contractEvents.map(c => ({ packetId: c.packetId, contractEventId: c.contractEventId }))
+                });
+                return;
+            }
+            const row = this.contractEvents[i];
+            contractDebug('enrichObserverContractFromDemo: before merge', {
+                index: i,
+                row,
+                extracted: full
+            });
+            const merged: ContractInfo = {
+                ...row,
+                ...full,
+                time: line.time?.ts_now ?? row.time,
+                result: row.result,
+                status: line.status ?? row.status,
+                packetId,
+                contractEventId: row.contractEventId ?? contractEventId
+            };
+            const allMoneyZero = merged.out_money === 0 && merged.in_money === 0;
+            const anyField = (merged.out_fields?.length ?? 0) > 0 || (merged.in_fields?.length ?? 0) > 0;
+            if (allMoneyZero && anyField) {
+                contractDebug(
+                    'enrichObserverContractFromDemo: OK — money is 0 but fields present (typical field-swap trade)',
+                    {
+                        out_fields: merged.out_fields,
+                        in_fields: merged.in_fields
+                    }
+                );
+            } else if (allMoneyZero && !anyField) {
+                contractDebug('enrichObserverContractFromDemo: WARNING — both money and field lists empty after merge', merged);
+            }
+            this.$set(this.contractEvents, i, merged);
+            contractDebug('enrichObserverContractFromDemo: applied merge', { index: i, merged });
+            if (this.settings.showLiveContracts) {
+                // Show modal only once we have full trade data from demo; keep `status` so TableContract uses field snapshot (vm_fields).
+                this.$set(this, 'ongoingContract', { ...merged, status: merged.status });
+                contractDebug('enrichObserverContractFromDemo: set ongoingContract for live modal', merged);
+            }
+        });
+    }
+
+    /** Log raw `.mid` body from iframe (large games truncated). */
+    private logDemoMidResponse(res: string, reason: string): void {
+        const max = 32000;
+        const body = res.length > max ? `${res.slice(0, max)}\n… [truncated, total ${res.length} chars]` : res;
+        console.log(`[M1PRO loadDemo] ${reason} (${res.length} chars):\n`, body);
+    }
+
+    /**
+     * Loads demo `.mid` **only** via hidden iframe + `M1PRO_DEMO_DATA` (no fetch / GM / worker on demos host).
+     */
+    public loadDemo(id?: number, tries = 0): JQueryPromise<Array<UpdateAction>> {
+        const deferred = $.Deferred<Array<UpdateAction>>();
+        const url = `https://demos.monopoly-one.com/dl/${this.storage.about.gs_id}/${this.storage.about.gs_game_id}.mid?_=${Date.now()}&r=${Math.random().toString(36).slice(2)}`;
+
+        contractDebug('loadDemo: request', {
+            wantedPacketId: id,
+            tryIndex: tries,
+            gs_id: this.storage.about.gs_id,
+            gs_game_id: this.storage.about.gs_game_id,
+            url
+        });
+        console.info('[M1PRO loadDemo] iframe-only', { wantedPacketId: id, tryIndex: tries, url });
+
+        const processResponse = (res: string) => {
+            this.logDemoMidResponse(res, 'RAW response (before parse)');
+            if (!res || res.includes('cf-browser-verification') || res.includes('Just a moment...')) {
+                contractDebug('loadDemo: processResponse — Cloudflare / blocked body', {
+                    len: res?.length,
+                    head: res?.slice(0, 120)
+                });
+                throw new Error('Cloudflare challenge detected');
+            }
+
+            let lines: Array<UpdateAction>;
+            try {
+                lines = res.split("\n").filter((l: string) => l.trim().length > 0).map((line: string) => JSON.parse(line));
+            } catch (parseErr) {
+                contractDebug('loadDemo: JSON parse failed', { parseErr, head: res.slice(0, 400) });
+                throw parseErr;
+            }
+            const ids = lines.map(l => l.id);
+            const hasTarget = !id || !!lines.find(msg => msg.id === id);
+            contractDebug('loadDemo: processResponse — parsed', {
+                lineCount: lines.length,
+                idMin: ids.length ? Math.min(...ids) : undefined,
+                idMax: ids.length ? Math.max(...ids) : undefined,
+                wantedPacketId: id,
+                hasTargetPacketId: hasTarget
+            });
+            console.info('[M1PRO loadDemo] parsed OK', {
+                lines: lines.length,
+                wantedPacketId: id,
+                hasTargetPacketId: hasTarget
+            });
+            if (!id || (id && lines.find(msg => msg.id === id))) {
+                deferred.resolve(lines);
+            } else if (tries < 3) {
+                contractDebug('loadDemo: target id not in file yet — retry', { id, tries: tries + 1, inMs: 1000 });
+                setTimeout(() => {
+                    this.loadDemo(id, tries + 1).done(deferred.resolve).fail(deferred.reject);
+                }, 1000);
+            } else {
+                contractDebug('loadDemo: target id not found after retries', {
+                    id,
+                    gs_id: this.storage.about.gs_id,
+                    gs_game_id: this.storage.about.gs_game_id,
+                    idMax: ids.length ? Math.max(...ids) : undefined
+                });
+                debug('demo packet not found after retries', id, this.storage.about.gs_id, this.storage.about.gs_game_id);
+                deferred.resolve([]);
+            }
+        };
+
+        const handleError = (err: any) => {
+            const errMsg = err instanceof Error ? err.message : String(err);
+            contractDebug('loadDemo: handleError', { err: errMsg, tryIndex: tries, willRetry: tries < 3 });
+            if (tries < 3) {
+                console.warn('[M1PRO loadDemo] error — retrying iframe', { message: errMsg, tryIndex: tries });
+                setTimeout(() => {
+                    this.loadDemo(id, tries + 1).done(deferred.resolve).fail(deferred.reject);
+                }, 2000);
+            } else {
+                contractDebug('loadDemo: giving up after errors', { lastError: err?.message || err });
+                console.warn('[M1PRO loadDemo] FAILED after iframe retries', err?.message || err);
+                debug('failed to load demo', err);
+                deferred.resolve([]);
+            }
+        };
+
+        contractDebug('loadDemo: iframe');
+        console.info('[M1PRO loadDemo] loading via hidden iframe');
+        const iframe = document.createElement('iframe');
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = 'none';
+        iframe.style.position = 'absolute';
+        const cleanup = () => {
+            window.removeEventListener('message', messageHandler);
+            if (iframe.parentNode) {
+                iframe.parentNode.removeChild(iframe);
+            }
+        };
+
+        const messageHandler = (event: MessageEvent) => {
+            if (event.origin === 'https://demos.monopoly-one.com' && event.data && event.data.type === 'M1PRO_DEMO_DATA') {
+                const res = event.data.text;
+                if (!res || !String(res).trim().length) {
+                    return;
+                }
+                const isCf =
+                    res.includes('cf-browser-verification') ||
+                    res.includes('Just a moment...') ||
+                    (res.includes('Cloudflare') && res.includes('challenge'));
+                if (isCf) {
+                    cleanup();
+                    this.logDemoMidResponse(res, 'iframe response (Cloudflare page, not .mid)');
+                    contractDebug('loadDemo: iframe got CF/HTML challenge', { head: res.slice(0, 80) });
+                    console.warn('[M1PRO loadDemo] Cloudflare/HTML in iframe, not .mid');
+                    handleError(new Error('Cloudflare challenge in iframe'));
+                    return;
+                }
+
+                cleanup();
+
+                try {
+                    processResponse(res);
+                } catch (e) {
+                    handleError(e);
+                }
+            }
+        };
+
+        window.addEventListener('message', messageHandler);
+
+        const startIframe = (): void => {
+            const root = document.body || document.documentElement;
+            root.appendChild(iframe);
+            iframe.src = url;
+            debug('loadDemo iframe', url);
+        };
+
+        if (document.body) {
+            startIframe();
+        } else {
+            document.addEventListener('DOMContentLoaded', startIframe, { once: true });
+        }
+
+        window.setTimeout(() => {
+            if (deferred.state() === 'pending') {
+                cleanup();
+                contractDebug('loadDemo: iframe timeout');
+                console.warn('[M1PRO loadDemo] iframe timeout (no M1PRO_DEMO_DATA in time)');
+                handleError(new Error('iframe timeout'));
+            }
+        }, 20000);
+
+        return deferred.promise();
+    }
+
+    private resolveChanceCardsConfig(): Array<ChanceCard> {
+        const cfg: any = this.storage?.config;
+        const queue: any[] = [cfg, this.storage, (window as any)?.API?.table?.storage].filter(Boolean);
+        const seen = new Set<any>();
+        const queued = new Set<any>(queue);
+        let depth = 0;
+
+        const enqueue = (value: any): void => {
+            if (!value || typeof value !== 'object' || seen.has(value) || queued.has(value)) {
+                return;
+            }
+            queue.push(value);
+            queued.add(value);
+        };
+
+        const pushCandidate = (candidate: any): Array<ChanceCard> => {
+            const normalized = this.normalizeChanceCards(candidate);
+            if (normalized.length) {
+                return normalized;
+            }
+            return [];
+        };
+
+        while (queue.length) {
+            depth++;
+            if (depth > 6000) {
+                break;
+            }
+            const current = queue.shift();
+            if (!current || typeof current !== 'object' || seen.has(current)) {
+                continue;
+            }
+            seen.add(current);
+
+            const directCandidates = [
+                (current as any).chance_cards,
+                (current as any).chanceCards,
+                (current as any).cards?.chance,
+                (current as any).chance?.cards,
+                (current as any).chances?.cards,
+                (current as any).game_chance_cards
+            ];
+            for (const candidate of directCandidates) {
+                const normalized = pushCandidate(candidate);
+                if (normalized.length) {
+                    return normalized;
+                }
+            }
+
+            for (const key of Reflect.ownKeys(current)) {
+                let value: any;
+                try {
+                    value = (current as any)[key as any];
+                } catch (_e) {
+                    continue;
+                }
+                const normalized = pushCandidate(value);
+                if (normalized.length) {
+                    return normalized;
+                }
+                enqueue(value);
+            }
+        }
+        return [];
+    }
+
+    private normalizeChanceCards(value: any): Array<ChanceCard> {
+        const list = Array.isArray(value)
+            ? value
+            : (value && typeof value === 'object' ? Object.keys(value).sort((a, b) => Number(a) - Number(b)).map(k => value[k]) : []);
+        if (!list.length) {
+            return [];
+        }
+        if (!list.some((card: any) => card && typeof card.type === 'string')) {
+            return [];
+        }
+        return list.map((card: any) => ({
+            type: card?.type ?? 'unknown',
+            text: card?.text ?? '',
+            range: card?.range,
+            rangeStep: card?.rangeStep,
+            sum: card?.sum
+        }));
     }
 
     private getBirthdayMoneyFor(bpl: Player, sum: number): number {
@@ -586,7 +1201,7 @@ export default class GameState extends Vue {
                 }
                 debug('pend pool', JSON.parse(JSON.stringify(this.pendingChancesToRemove)))
                 if (this.pendingChancesToRemove.length) {
-                    this.pendingChancesToRemove.forEach(v => this.chancePool[v].out = true);
+                    this.pendingChancesToRemove.forEach(v => this.chancePool[v] && (this.chancePool[v].out = true));
                     if (this.chancePool.filter(c => !c.out).length === 0) {
                         this.chancePool.forEach(c => c.out = false);
                     }
@@ -598,7 +1213,62 @@ export default class GameState extends Vue {
                 }
             }
         });
+        this.$watch(() => this.chanceCardsConfig.length, len => {
+            if (len > 0) {
+                this.ensureChancePoolInitialized();
+            }
+        }, { immediate: true });
         this.loaded = true;
+    }
+
+    /**
+     * Load `.mid` via iframe and fill the Договоры list (when opening that tab).
+     */
+    public loadObserverContractHistoryFromDemo(): void {
+        if (!this.storage?.about) {
+            return;
+        }
+        if (this.storage.about.is_m1tv) {
+            return;
+        }
+        if (!this.storage.about.gs_id || !this.storage.about.gs_game_id) {
+            contractDebug('loadObserverContractHistoryFromDemo: skip (no gs_id / gs_game_id)', {
+                gs_id: this.storage?.about?.gs_id,
+                gs_game_id: this.storage?.about?.gs_game_id
+            });
+            return;
+        }
+        if (this.observerContractHistoryLoadInFlight) {
+            return;
+        }
+        this.observerContractHistoryLoadInFlight = true;
+        this.loadDemo()
+            .then(msgs => {
+                this.applyObserverContractHistoryFromDemo(msgs);
+            })
+            .always(() => {
+                this.observerContractHistoryLoadInFlight = false;
+            });
+    }
+
+    private ensureChancePoolInitialized() {
+        if (this.chancePoolInit) {
+            return;
+        }
+        const configCards = this.chanceCardsConfig;
+        if (!configCards.length) {
+            return;
+        }
+        this.oldChancePool = [...configCards].map(c => ({ ...c, out: false }));
+        const pool = [...this.oldChancePool];
+        this.pendingChancePool.forEach(idx => {
+            if (pool[idx]) {
+                pool[idx].out = true;
+            }
+        });
+        this.chancePool.splice(0, this.chancePool.length, ...pool);
+        this.chancePoolInit = true;
+        debug('chance pool initialized', pool.length);
     }
 
     private loadPlayers() {

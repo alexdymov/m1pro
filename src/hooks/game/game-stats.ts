@@ -171,6 +171,8 @@ export class GameStats {
     private root: JQuery<HTMLElement>;
     private pool: JQuery<HTMLElement>;
     private chanceItems: ChanceItems;
+    private chancePoolWatcherBound = false;
+    private initContractsTabRetries = 0;
 
     constructor(public base: Vue, private state: GameState) {
         this.jq = jQuery(base.$el);
@@ -202,27 +204,41 @@ export class GameStats {
         this.pool = jQuery('<div class="TablePool-content"><div class="pool-title"><div class="ion-help" />Поле шанс</div></div>').appendTo(this.root).hide();
         this.loadCommonStatsElements();
         this.initExtraStatsTable();
-        this.initContractsTab();
+        Vue.nextTick(() => {
+            setTimeout(() => this.initContractsTab(), 0);
+        });
         this.observeTabSwitch();
         window.onresize = (e) => {
             this.renderCommonStats();
         };
         this.state.$watch('gameOver', v => v && this.root.hide() && debug('gameover'));
 
-        if (this.state.storage.config.chance_cards) {
-            debug('wait stats pool')
-            this.state.$watch('chancePool', v => {
-                debug('stats pool', JSON.parse(JSON.stringify(v)))
-                if (!this.chanceItems && v) {
-                    this.chanceItems = new ChanceItems({ propsData: { chanceCards: v, chanceCardsInit: this.state.storage.config.chance_cards, players: () => this.state.storage.status.players, party: this.state.party } });
-                    this.pool.append(this.chanceItems.$mount().$el).show();
-                }
-            }, { immediate: true });
-        }
+        this.state.$watch(() => this.state.chanceCardsConfig.length, len => {
+            if (len > 0 && !this.chancePoolWatcherBound) {
+                this.chancePoolWatcherBound = true;
+                debug('wait stats pool');
+                this.state.$watch('chancePool', v => {
+                    debug('stats pool', JSON.parse(JSON.stringify(v)));
+                    if (!this.chanceItems && v) {
+                        this.chanceItems = new ChanceItems({ propsData: { chanceCards: v, chanceCardsInit: this.state.chanceCardsConfig, players: () => this.state.storage.status.players, party: this.state.party } });
+                        this.pool.append(this.chanceItems.$mount().$el).show();
+                    }
+                }, { immediate: true });
+            }
+        }, { immediate: true });
     }
 
     private initContractsTab() {
-        const tab = jQuery('<div class="_contracts">Договоры</div>').appendTo(jQuery('div.TableHelper-tabs', this.jq)).on('click', () => {
+        const tabsHost = jQuery('div.TableHelper-tabs', this.jq);
+        const contentHost = jQuery('div.TableHelper-content', this.jq);
+        if (!tabsHost.length || !contentHost.length) {
+            if (this.initContractsTabRetries++ < 25) {
+                debug('TableHelper tabs/content missing — retry initContractsTab');
+                setTimeout(() => this.initContractsTab(), 300);
+            }
+            return;
+        }
+        const tab = jQuery('<div class="_contracts">Договоры</div>').appendTo(tabsHost).on('click', () => {
             this.base.tab = 2;
         });
         const content = jQuery(`<div><div class="TableHelper-content-contracts">
@@ -232,7 +248,7 @@ export class GameStats {
                 <div>Результат</div>
                 <div>Время</div>
             </div>
-        </div></div>`).appendTo(jQuery('div.TableHelper-content', this.jq)).hide();
+        </div></div>`).appendTo(contentHost).hide();
         this.state.$watch('contractEvents', (ce: Array<ContractInfo>) => {
             debug('got contracts', JSON.parse(JSON.stringify(ce)));
             content.find('div.TableHelper-content-contracts-row').remove();
@@ -251,10 +267,14 @@ export class GameStats {
             if (v === 2) {
                 tab.addClass('_active');
                 content.show();
+                this.state.loadObserverContractHistoryFromDemo();
             } else {
                 tab.removeClass('_active');
                 content.hide();
             }
+        });
+        this.jq.on('click', 'div.TableHelper-tabs ._contracts', () => {
+            this.state.loadObserverContractHistoryFromDemo();
         });
     }
 
